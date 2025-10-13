@@ -30,7 +30,7 @@ const LoginForm = () => {
 			</form.AppField>
 
 			<form.AppField name="password">
-				{(field) => <field.TextField label="Password" />}
+				{(field) => <field.TextField label="Password" description="Al menos 6 caracteres" />}
 			</form.AppField>
 
 			<form.AppForm>

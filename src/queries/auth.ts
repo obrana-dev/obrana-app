@@ -1,6 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { loginFn, logoutFn, signupFn } from "@/services/auth";
+import {
+	fetchUserFn,
+	loginFn,
+	loginWithGoogleFn,
+	logoutFn,
+	signupFn,
+} from "@/services/auth";
 
 export const useSignUp = () =>
 	useMutation({
@@ -15,4 +21,15 @@ export const useLogin = () =>
 export const useLogout = () =>
 	useMutation({
 		mutationFn: useServerFn(logoutFn),
+	});
+
+export const useLoginWithGoogle = () =>
+	useMutation({
+		mutationFn: useServerFn(loginWithGoogleFn),
+	});
+
+export const useUser = () =>
+	useQuery({
+		queryKey: ["user"],
+		queryFn: useServerFn(fetchUserFn),
 	});

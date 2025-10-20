@@ -60,11 +60,13 @@ export const signupFn = createServerFn({ method: "POST" })
 	)
 	.handler(async ({ data }) => {
 		const supabase = getSupabaseServerClient();
-		const { error } = await supabase.auth.signUp({
+		const { error, data: user } = await supabase.auth.signUp({
 			email: data.email,
 			password: data.password,
 		});
 
+		console.log(error)
+		console.log(user)
 		if (error) {
 			return {
 				error: true,
@@ -76,3 +78,24 @@ export const signupFn = createServerFn({ method: "POST" })
 
 		throw redirect({ to: "/email_confirm" });
 	});
+
+export const loginWithGoogleFn = createServerFn({ method: "POST" }).handler(
+	async () => {
+		const supabase = getSupabaseServerClient();
+		const { data, error } = await supabase.auth.signInWithOAuth({
+			provider: "google",
+			options: {
+				redirectTo: `${process.env.BASE_URL}/auth/callback`,
+			},
+		});
+
+		if (error) {
+			return {
+				error: true,
+				message: error.message,
+			};
+		}
+
+		throw redirect({ href: data.url || "/" });
+	},
+);

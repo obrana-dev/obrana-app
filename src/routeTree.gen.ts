@@ -17,6 +17,7 @@ import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PublicEmail_confirmRouteImport } from './routes/_public/email_confirm'
 import { Route as PublicAuthConfirmRouteImport } from './routes/_public/auth.confirm'
+import { Route as PublicAuthCallbackRouteImport } from './routes/_public/auth.callback'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -56,6 +57,11 @@ const PublicAuthConfirmRoute = PublicAuthConfirmRouteImport.update({
   path: '/auth/confirm',
   getParentRoute: () => PublicRouteRoute,
 } as any)
+const PublicAuthCallbackRoute = PublicAuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/email_confirm': typeof PublicEmail_confirmRoute
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/recovery': typeof PublicRecoveryRoute
   '/sign_up': typeof PublicSign_upRoute
   '/': typeof AuthedIndexRoute
+  '/auth/callback': typeof PublicAuthCallbackRoute
   '/auth/confirm': typeof PublicAuthConfirmRoute
 }
 export interface FileRoutesByTo {
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/recovery': typeof PublicRecoveryRoute
   '/sign_up': typeof PublicSign_upRoute
   '/': typeof AuthedIndexRoute
+  '/auth/callback': typeof PublicAuthCallbackRoute
   '/auth/confirm': typeof PublicAuthConfirmRoute
 }
 export interface FileRoutesById {
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/_public/recovery': typeof PublicRecoveryRoute
   '/_public/sign_up': typeof PublicSign_upRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_public/auth/callback': typeof PublicAuthCallbackRoute
   '/_public/auth/confirm': typeof PublicAuthConfirmRoute
 }
 export interface FileRouteTypes {
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
     | '/recovery'
     | '/sign_up'
     | '/'
+    | '/auth/callback'
     | '/auth/confirm'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/recovery'
     | '/sign_up'
     | '/'
+    | '/auth/callback'
     | '/auth/confirm'
   id:
     | '__root__'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '/_public/recovery'
     | '/_public/sign_up'
     | '/_authed/'
+    | '/_public/auth/callback'
     | '/_public/auth/confirm'
   fileRoutesById: FileRoutesById
 }
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicAuthConfirmRouteImport
       parentRoute: typeof PublicRouteRoute
     }
+    '/_public/auth/callback': {
+      id: '/_public/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof PublicAuthCallbackRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
   }
 }
 
@@ -196,6 +215,7 @@ interface PublicRouteRouteChildren {
   PublicLoginRoute: typeof PublicLoginRoute
   PublicRecoveryRoute: typeof PublicRecoveryRoute
   PublicSign_upRoute: typeof PublicSign_upRoute
+  PublicAuthCallbackRoute: typeof PublicAuthCallbackRoute
   PublicAuthConfirmRoute: typeof PublicAuthConfirmRoute
 }
 
@@ -204,6 +224,7 @@ const PublicRouteRouteChildren: PublicRouteRouteChildren = {
   PublicLoginRoute: PublicLoginRoute,
   PublicRecoveryRoute: PublicRecoveryRoute,
   PublicSign_upRoute: PublicSign_upRoute,
+  PublicAuthCallbackRoute: PublicAuthCallbackRoute,
   PublicAuthConfirmRoute: PublicAuthConfirmRoute,
 }
 

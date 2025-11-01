@@ -11,9 +11,9 @@ const classes = tv({
 		},
 		color: {
 			primary:
-				"bg-blue-600 text-white data-[hovered]:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed",
+				"bg-primary text-white data-[hovered]:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed",
 			secondary:
-				"bg-gray-600 text-white data-[hovered]:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed",
+				"bg-secondary text-white data-[hovered]:bg-secondary/90 disabled:bg-secondary/40 disabled:cursor-not-allowed",
 			ghost:
 				"bg-transparent text-gray-800 data-[hovered]:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed",
 		},

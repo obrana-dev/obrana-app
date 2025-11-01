@@ -13,11 +13,10 @@ import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as PublicSign_upRouteImport } from './routes/_public/sign_up'
+import { Route as PublicSign_inRouteImport } from './routes/_public/sign_in'
 import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
-import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PublicEmail_confirmRouteImport } from './routes/_public/email_confirm'
-import { Route as PublicAuthConfirmRouteImport } from './routes/_public/auth.confirm'
-import { Route as PublicAuthCallbackRouteImport } from './routes/_public/auth.callback'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -37,14 +36,14 @@ const PublicSign_upRoute = PublicSign_upRouteImport.update({
   path: '/sign_up',
   getParentRoute: () => PublicRouteRoute,
 } as any)
+const PublicSign_inRoute = PublicSign_inRouteImport.update({
+  id: '/sign_in',
+  path: '/sign_in',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
 const PublicRecoveryRoute = PublicRecoveryRouteImport.update({
   id: '/recovery',
   path: '/recovery',
-  getParentRoute: () => PublicRouteRoute,
-} as any)
-const PublicLoginRoute = PublicLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => PublicRouteRoute,
 } as any)
 const PublicEmail_confirmRoute = PublicEmail_confirmRouteImport.update({
@@ -52,82 +51,72 @@ const PublicEmail_confirmRoute = PublicEmail_confirmRouteImport.update({
   path: '/email_confirm',
   getParentRoute: () => PublicRouteRoute,
 } as any)
-const PublicAuthConfirmRoute = PublicAuthConfirmRouteImport.update({
-  id: '/auth/confirm',
-  path: '/auth/confirm',
-  getParentRoute: () => PublicRouteRoute,
-} as any)
-const PublicAuthCallbackRoute = PublicAuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => PublicRouteRoute,
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/email_confirm': typeof PublicEmail_confirmRoute
-  '/login': typeof PublicLoginRoute
   '/recovery': typeof PublicRecoveryRoute
+  '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
   '/': typeof AuthedIndexRoute
-  '/auth/callback': typeof PublicAuthCallbackRoute
-  '/auth/confirm': typeof PublicAuthConfirmRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/email_confirm': typeof PublicEmail_confirmRoute
-  '/login': typeof PublicLoginRoute
   '/recovery': typeof PublicRecoveryRoute
+  '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
   '/': typeof AuthedIndexRoute
-  '/auth/callback': typeof PublicAuthCallbackRoute
-  '/auth/confirm': typeof PublicAuthConfirmRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_public': typeof PublicRouteRouteWithChildren
   '/_public/email_confirm': typeof PublicEmail_confirmRoute
-  '/_public/login': typeof PublicLoginRoute
   '/_public/recovery': typeof PublicRecoveryRoute
+  '/_public/sign_in': typeof PublicSign_inRoute
   '/_public/sign_up': typeof PublicSign_upRoute
   '/_authed/': typeof AuthedIndexRoute
-  '/_public/auth/callback': typeof PublicAuthCallbackRoute
-  '/_public/auth/confirm': typeof PublicAuthConfirmRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/email_confirm'
-    | '/login'
     | '/recovery'
+    | '/sign_in'
     | '/sign_up'
     | '/'
-    | '/auth/callback'
-    | '/auth/confirm'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/email_confirm'
-    | '/login'
     | '/recovery'
+    | '/sign_in'
     | '/sign_up'
     | '/'
-    | '/auth/callback'
-    | '/auth/confirm'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/_authed'
     | '/_public'
     | '/_public/email_confirm'
-    | '/_public/login'
     | '/_public/recovery'
+    | '/_public/sign_in'
     | '/_public/sign_up'
     | '/_authed/'
-    | '/_public/auth/callback'
-    | '/_public/auth/confirm'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   PublicRouteRoute: typeof PublicRouteRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -160,18 +149,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicSign_upRouteImport
       parentRoute: typeof PublicRouteRoute
     }
+    '/_public/sign_in': {
+      id: '/_public/sign_in'
+      path: '/sign_in'
+      fullPath: '/sign_in'
+      preLoaderRoute: typeof PublicSign_inRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
     '/_public/recovery': {
       id: '/_public/recovery'
       path: '/recovery'
       fullPath: '/recovery'
       preLoaderRoute: typeof PublicRecoveryRouteImport
-      parentRoute: typeof PublicRouteRoute
-    }
-    '/_public/login': {
-      id: '/_public/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof PublicLoginRouteImport
       parentRoute: typeof PublicRouteRoute
     }
     '/_public/email_confirm': {
@@ -181,19 +170,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicEmail_confirmRouteImport
       parentRoute: typeof PublicRouteRoute
     }
-    '/_public/auth/confirm': {
-      id: '/_public/auth/confirm'
-      path: '/auth/confirm'
-      fullPath: '/auth/confirm'
-      preLoaderRoute: typeof PublicAuthConfirmRouteImport
-      parentRoute: typeof PublicRouteRoute
-    }
-    '/_public/auth/callback': {
-      id: '/_public/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof PublicAuthCallbackRouteImport
-      parentRoute: typeof PublicRouteRoute
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -212,20 +194,16 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 
 interface PublicRouteRouteChildren {
   PublicEmail_confirmRoute: typeof PublicEmail_confirmRoute
-  PublicLoginRoute: typeof PublicLoginRoute
   PublicRecoveryRoute: typeof PublicRecoveryRoute
+  PublicSign_inRoute: typeof PublicSign_inRoute
   PublicSign_upRoute: typeof PublicSign_upRoute
-  PublicAuthCallbackRoute: typeof PublicAuthCallbackRoute
-  PublicAuthConfirmRoute: typeof PublicAuthConfirmRoute
 }
 
 const PublicRouteRouteChildren: PublicRouteRouteChildren = {
   PublicEmail_confirmRoute: PublicEmail_confirmRoute,
-  PublicLoginRoute: PublicLoginRoute,
   PublicRecoveryRoute: PublicRecoveryRoute,
+  PublicSign_inRoute: PublicSign_inRoute,
   PublicSign_upRoute: PublicSign_upRoute,
-  PublicAuthCallbackRoute: PublicAuthCallbackRoute,
-  PublicAuthConfirmRoute: PublicAuthConfirmRoute,
 }
 
 const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
@@ -235,6 +213,7 @@ const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
   PublicRouteRoute: PublicRouteRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

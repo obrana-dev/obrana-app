@@ -6,7 +6,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { fetchUserFn } from "@/services/auth";
+import { Toaster } from "sonner";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
@@ -15,11 +15,6 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: async () => {
-		const user = await fetchUserFn();
-
-		return { user };
-	},
 	head: () => ({
 		meta: [
 			{
@@ -51,6 +46,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body className="h-screen w-screen">
+				<Toaster position="top-right" richColors />
 				{children}
 				<TanStackDevtools
 					config={{

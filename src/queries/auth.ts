@@ -1,35 +1,92 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import {
-	fetchUserFn,
-	loginFn,
-	loginWithGoogleFn,
-	logoutFn,
-	signupFn,
-} from "@/services/auth";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
-export const useSignUp = () =>
-	useMutation({
-		mutationFn: useServerFn(signupFn),
-	});
+export const useSignUp = () => {
+	const router = useRouter();
 
-export const useLogin = () =>
-	useMutation({
-		mutationFn: useServerFn(loginFn),
-	});
+	return useMutation({
+		mutationFn: async (data: { email: string; password: string; name: string }) => {
+			const result = await authClient.signUp.email({
+				email: data.email,
+				password: data.password,
+				name: data.name,
+			});
 
-export const useLogout = () =>
-	useMutation({
-		mutationFn: useServerFn(logoutFn),
-	});
+			if (result.error) {
+				throw new Error(result.error.message || "Error al registrarse");
+			}
 
-export const useLoginWithGoogle = () =>
-	useMutation({
-		mutationFn: useServerFn(loginWithGoogleFn),
+			return result;
+		},
+		onSuccess: () => {
+			router.navigate({ to: "/" });
+		},
+		onError: (error) => {
+			toast.error(error.message || "Error al registrarse");
+		},
 	});
+};
 
-export const useUser = () =>
-	useQuery({
-		queryKey: ["user"],
-		queryFn: useServerFn(fetchUserFn),
+export const useLogin = () => {
+	const router = useRouter();
+
+	return useMutation({
+		mutationFn: async (data: { email: string; password: string }) => {
+			const result = await authClient.signIn.email({
+				email: data.email,
+				password: data.password,
+			});
+
+			console.log({ result });
+
+			if (result.error) {
+				throw new Error(result.error.message || "Credenciales inválidas");
+			}
+
+			return result;
+		},
+		onSuccess: () => {
+			router.navigate({ to: "/" });
+		},
+		onError: (error) => {
+			toast.error(error.message || "Error al iniciar sesión");
+		},
 	});
+};
+
+export const useLogout = () => {
+	const router = useRouter();
+
+	return useMutation({
+		mutationFn: async () => {
+			await authClient.signOut();
+		},
+		onSuccess: () => {
+			router.navigate({ to: "/sign_in" });
+		},
+	});
+};
+
+export const useLoginWithGoogle = () => {
+	return useMutation({
+		mutationFn: async () => {
+			const result = await authClient.signIn.social({
+				provider: "google",
+			});
+
+			if (result.error) {
+				throw new Error(result.error.message || "Error al iniciar sesión con Google");
+			}
+
+			return result;
+		},
+		onError: (error) => {
+			toast.error(error.message || "Error al iniciar sesión con Google");
+		},
+	});
+};
+
+// Export useSession from authClient for checking user state
+export { useSession } from "@/lib/auth-client";

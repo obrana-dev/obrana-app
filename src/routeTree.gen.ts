@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as PublicSign_upRouteImport } from './routes/_public/sign_up'
 import { Route as PublicSign_inRouteImport } from './routes/_public/sign_in'
 import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
@@ -30,6 +31,11 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthedRouteRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PublicSign_upRoute = PublicSign_upRouteImport.update({
   id: '/sign_up',
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
+  '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
+  '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/_public/recovery': typeof PublicRecoveryRoute
   '/_public/sign_in': typeof PublicSign_inRoute
   '/_public/sign_up': typeof PublicSign_upRoute
+  '/api/health': typeof ApiHealthRoute
   '/_authed/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
+    | '/api/health'
     | '/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
+    | '/api/health'
     | '/'
     | '/api/auth/$'
   id:
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/_public/recovery'
     | '/_public/sign_in'
     | '/_public/sign_up'
+    | '/api/health'
     | '/_authed/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   PublicRouteRoute: typeof PublicRouteRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_public/sign_up': {
       id: '/_public/sign_up'
@@ -213,6 +233,7 @@ const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
   PublicRouteRoute: PublicRouteRouteWithChildren,
+  ApiHealthRoute: ApiHealthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

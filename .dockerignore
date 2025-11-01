@@ -49,7 +49,7 @@ yarn-error.log*
 # Database
 *.db
 *.sqlite
-drizzle
+# Note: drizzle folder MUST be included for migrations!
 
 # Misc
 .cache

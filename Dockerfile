@@ -12,6 +12,11 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Generate drizzle migrations if they don't exist
+RUN if [ ! -d "drizzle" ]; then pnpm db:generate; fi
+
+# Build the application
 RUN pnpm run build
 
 # Production stage - optimized runtime image
@@ -45,4 +50,4 @@ USER tanstack
 EXPOSE 3000
 
 # Run migrations then start the app
-CMD sh -c "pnpm db:migrate && node .output/server/index.mjs"
+CMD ["sh", "-c", "pnpm db:migrate && node .output/server/index.mjs"]

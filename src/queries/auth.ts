@@ -3,11 +3,22 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
+interface AuthError {
+	status: number;
+	message: string;
+	statusText: string;
+	code: string;
+}
+
 export const useSignUp = () => {
 	const router = useRouter();
 
 	return useMutation({
-		mutationFn: async (data: { email: string; password: string; name: string }) => {
+		mutationFn: async (data: {
+			email: string;
+			password: string;
+			name: string;
+		}) => {
 			const result = await authClient.signUp.email({
 				email: data.email,
 				password: data.password,
@@ -15,16 +26,23 @@ export const useSignUp = () => {
 			});
 
 			if (result.error) {
-				throw new Error(result.error.message || "Error al registrarse");
+				throw result.error;
 			}
 
-			return result;
+			return { ...result, email: data.email };
 		},
-		onSuccess: () => {
-			router.navigate({ to: "/" });
+		onSuccess: (data) => {
+			// Redirect to verification page with email in search params
+			router.navigate({ to: "/verify_email", search: { email: data.email } });
 		},
-		onError: (error) => {
-			toast.error(error.message || "Error al registrarse");
+		onError: (error: AuthError) => {
+			if (error.code?.includes("USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL")) {
+				toast.error(
+					"Este email ya está registrado. Si utilizaste Google para registrarte, por favor inicia sesión con Google.",
+				);
+			} else {
+				toast.error(error.message || "Error al registrarse");
+			}
 		},
 	});
 };
@@ -39,10 +57,9 @@ export const useLogin = () => {
 				password: data.password,
 			});
 
-			console.log({ result });
-
 			if (result.error) {
-				throw new Error(result.error.message || "Credenciales inválidas");
+				const err = result.error as AuthError;
+				throw { ...err, email: data.email };
 			}
 
 			return result;
@@ -50,8 +67,15 @@ export const useLogin = () => {
 		onSuccess: () => {
 			router.navigate({ to: "/" });
 		},
-		onError: (error) => {
-			toast.error(error.message || "Error al iniciar sesión");
+		onError: (error: (Error | AuthError) & { email?: string }) => {
+			if ("code" in error && error.code === "EMAIL_NOT_VERIFIED") {
+				router.navigate({
+					to: "/verify_email",
+					search: { email: error.email },
+				});
+			} else {
+				toast.error(error.message || "Error al iniciar sesión");
+			}
 		},
 	});
 };
@@ -77,13 +101,36 @@ export const useLoginWithGoogle = () => {
 			});
 
 			if (result.error) {
-				throw new Error(result.error.message || "Error al iniciar sesión con Google");
+				throw result.error;
 			}
 
 			return result;
 		},
 		onError: (error) => {
 			toast.error(error.message || "Error al iniciar sesión con Google");
+		},
+	});
+};
+
+export const useResendVerificationEmail = () => {
+	return useMutation({
+		mutationFn: async (data: { email: string }) => {
+			const result = await authClient.sendVerificationEmail({
+				email: data.email,
+				callbackURL: "/",
+			});
+
+			if (result.error) {
+				throw result.error;
+			}
+
+			return result;
+		},
+		onSuccess: () => {
+			toast.success("Email de verificación reenviado correctamente");
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || "Error al reenviar email de verificación");
 		},
 	});
 };

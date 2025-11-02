@@ -8,6 +8,9 @@ export const Route = createFileRoute("/_authed")({
 		if (!session?.user) {
 			throw redirect({ to: "/sign_in" });
 		}
+
+		// With requireEmailVerification: true, users won't have a session
+		// until email is verified, so no need to check emailVerified here
 	},
 	component: RouteComponent,
 });

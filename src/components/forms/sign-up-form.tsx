@@ -1,9 +1,11 @@
 import { z } from "zod";
+import GoogleSignInButton from "@/components/ui/google-sign-in-button";
 import { useAppForm } from "@/hooks/form";
-import { useSignUp } from "@/queries/auth";
+import { useLoginWithGoogle, useSignUp } from "@/queries/auth";
 
 const SignUpForm = () => {
 	const mutation = useSignUp();
+	const googleMutation = useLoginWithGoogle();
 	const form = useAppForm({
 		defaultValues: { email: "", password: "", name: "" },
 		onSubmit: async (data) => {
@@ -25,36 +27,54 @@ const SignUpForm = () => {
 	});
 
 	return (
-		<form
-			className="flex flex-col gap-4 w-full"
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-		>
-			<form.AppField name="email">
-				{(field) => <field.TextField label="Email" autoComplete="email" />}
-			</form.AppField>
+		<div className="flex flex-col gap-4 w-full">
+			<GoogleSignInButton
+				onClick={() => googleMutation.mutate()}
+				isLoading={googleMutation.isPending}
+			/>
 
-			<form.AppField name="password">
-				{(field) => (
-					<field.TextField
-						label="Contraseña"
-						description="Al menos 6 caracteres"
-						type="password"
-					/>
-				)}
-			</form.AppField>
+			<div className="relative my-3">
+				<div className="absolute inset-0 flex items-center">
+					<span className="w-full border-t" />
+				</div>
+				<div className="relative flex justify-center text-xs uppercase">
+					<span className="bg-white pb-0.5 px-2 text-muted-foreground">
+						O continúa con email
+					</span>
+				</div>
+			</div>
 
-			<form.AppField name="name">
-				{(field) => <field.TextField label="Nombre" autoComplete="name" />}
-			</form.AppField>
+			<form
+				className="flex flex-col gap-4 w-full"
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<form.AppField name="email">
+					{(field) => <field.TextField label="Email" autoComplete="email" />}
+				</form.AppField>
 
-			<form.AppForm>
-				<form.SubscribeButton label="Registrarse" />
-			</form.AppForm>
-		</form>
+				<form.AppField name="password">
+					{(field) => (
+						<field.TextField
+							label="Contraseña"
+							description="Al menos 6 caracteres"
+							type="password"
+						/>
+					)}
+				</form.AppField>
+
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Nombre" autoComplete="name" />}
+				</form.AppField>
+
+				<form.AppForm>
+					<form.SubscribeButton label="Registrarse" />
+				</form.AppForm>
+			</form>
+		</div>
 	);
 };
 

@@ -6,7 +6,12 @@ export function SubscribeButton({ label }: { label: string }) {
 	return (
 		<form.Subscribe selector={(state) => state.isSubmitting}>
 			{(isSubmitting) => (
-				<Button type="submit" color="secondary"  isDisabled={isSubmitting} isPending={isSubmitting}>
+				<Button
+					type="submit"
+					color="secondary"
+					isDisabled={isSubmitting}
+					isPending={isSubmitting}
+				>
 					{label}
 				</Button>
 			)}

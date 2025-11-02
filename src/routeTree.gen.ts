@@ -13,10 +13,10 @@ import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as PublicVerify_emailRouteImport } from './routes/_public/verify_email'
 import { Route as PublicSign_upRouteImport } from './routes/_public/sign_up'
 import { Route as PublicSign_inRouteImport } from './routes/_public/sign_in'
 import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
-import { Route as PublicEmail_confirmRouteImport } from './routes/_public/email_confirm'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
@@ -37,6 +37,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicVerify_emailRoute = PublicVerify_emailRouteImport.update({
+  id: '/verify_email',
+  path: '/verify_email',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
 const PublicSign_upRoute = PublicSign_upRouteImport.update({
   id: '/sign_up',
   path: '/sign_up',
@@ -52,11 +57,6 @@ const PublicRecoveryRoute = PublicRecoveryRouteImport.update({
   path: '/recovery',
   getParentRoute: () => PublicRouteRoute,
 } as any)
-const PublicEmail_confirmRoute = PublicEmail_confirmRouteImport.update({
-  id: '/email_confirm',
-  path: '/email_confirm',
-  getParentRoute: () => PublicRouteRoute,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -64,19 +64,19 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/email_confirm': typeof PublicEmail_confirmRoute
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
+  '/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
-  '/email_confirm': typeof PublicEmail_confirmRoute
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
+  '/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -85,10 +85,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_public': typeof PublicRouteRouteWithChildren
-  '/_public/email_confirm': typeof PublicEmail_confirmRoute
   '/_public/recovery': typeof PublicRecoveryRoute
   '/_public/sign_in': typeof PublicSign_inRoute
   '/_public/sign_up': typeof PublicSign_upRoute
+  '/_public/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/_authed/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -96,19 +96,19 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/email_confirm'
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
+    | '/verify_email'
     | '/api/health'
     | '/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/email_confirm'
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
+    | '/verify_email'
     | '/api/health'
     | '/'
     | '/api/auth/$'
@@ -116,10 +116,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authed'
     | '/_public'
-    | '/_public/email_confirm'
     | '/_public/recovery'
     | '/_public/sign_in'
     | '/_public/sign_up'
+    | '/_public/verify_email'
     | '/api/health'
     | '/_authed/'
     | '/api/auth/$'
@@ -162,6 +162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_public/verify_email': {
+      id: '/_public/verify_email'
+      path: '/verify_email'
+      fullPath: '/verify_email'
+      preLoaderRoute: typeof PublicVerify_emailRouteImport
+      parentRoute: typeof PublicRouteRoute
+    }
     '/_public/sign_up': {
       id: '/_public/sign_up'
       path: '/sign_up'
@@ -181,13 +188,6 @@ declare module '@tanstack/react-router' {
       path: '/recovery'
       fullPath: '/recovery'
       preLoaderRoute: typeof PublicRecoveryRouteImport
-      parentRoute: typeof PublicRouteRoute
-    }
-    '/_public/email_confirm': {
-      id: '/_public/email_confirm'
-      path: '/email_confirm'
-      fullPath: '/email_confirm'
-      preLoaderRoute: typeof PublicEmail_confirmRouteImport
       parentRoute: typeof PublicRouteRoute
     }
     '/api/auth/$': {
@@ -213,17 +213,17 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 )
 
 interface PublicRouteRouteChildren {
-  PublicEmail_confirmRoute: typeof PublicEmail_confirmRoute
   PublicRecoveryRoute: typeof PublicRecoveryRoute
   PublicSign_inRoute: typeof PublicSign_inRoute
   PublicSign_upRoute: typeof PublicSign_upRoute
+  PublicVerify_emailRoute: typeof PublicVerify_emailRoute
 }
 
 const PublicRouteRouteChildren: PublicRouteRouteChildren = {
-  PublicEmail_confirmRoute: PublicEmail_confirmRoute,
   PublicRecoveryRoute: PublicRecoveryRoute,
   PublicSign_inRoute: PublicSign_inRoute,
   PublicSign_upRoute: PublicSign_upRoute,
+  PublicVerify_emailRoute: PublicVerify_emailRoute,
 }
 
 const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(

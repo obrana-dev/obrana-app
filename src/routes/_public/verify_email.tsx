@@ -68,5 +68,5 @@ function RouteComponent() {
 				</p>
 			</div>
 		</div>
-	)
+	);
 }

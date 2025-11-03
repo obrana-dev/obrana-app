@@ -16,6 +16,8 @@ const classes = tv({
 				"bg-secondary text-white data-[hovered]:bg-secondary/90 disabled:bg-secondary/40 disabled:cursor-not-allowed",
 			ghost:
 				"bg-transparent text-gray-800 data-[hovered]:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed",
+			error:
+				"bg-error text-white data-[hovered]:bg-error/90 disabled:bg-error/40 disabled:cursor-not-allowed",
 		},
 		variant: {
 			outlined: "border border-current",
@@ -37,7 +39,7 @@ export function Button({
 	...props
 }: ButtonProps & {
 	size?: "sm" | "md" | "lg";
-	color?: "primary" | "secondary" | "ghost";
+	color?: "primary" | "secondary" | "ghost" | "error";
 	variant?: "outlined" | "contained" | "text";
 }) {
 	return (

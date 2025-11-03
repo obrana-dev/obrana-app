@@ -1,4 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
 import { getSessionFn } from "@/services/auth";
 
 export const Route = createFileRoute("/_authed")({
@@ -8,13 +10,20 @@ export const Route = createFileRoute("/_authed")({
 		if (!session?.user) {
 			throw redirect({ to: "/sign_in" });
 		}
-
-		// With requireEmailVerification: true, users won't have a session
-		// until email is verified, so no need to check emailVerified here
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	return <Outlet />;
+	return (
+		<div className="flex flex-col h-screen">
+			<Topbar />
+			<div className="flex flex-1 overflow-hidden">
+				<Sidebar />
+				<main className="flex-1 overflow-auto">
+					<Outlet />
+				</main>
+			</div>
+		</div>
+	);
 }

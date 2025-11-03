@@ -17,6 +17,7 @@ import { Route as PublicVerify_emailRouteImport } from './routes/_public/verify_
 import { Route as PublicSign_upRouteImport } from './routes/_public/sign_up'
 import { Route as PublicSign_inRouteImport } from './routes/_public/sign_in'
 import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
+import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
@@ -57,6 +58,11 @@ const PublicRecoveryRoute = PublicRecoveryRouteImport.update({
   path: '/recovery',
   getParentRoute: () => PublicRouteRoute,
 } as any)
+const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -64,6 +70,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/settings': typeof AuthedSettingsRoute
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
+  '/settings': typeof AuthedSettingsRoute
   '/recovery': typeof PublicRecoveryRoute
   '/sign_in': typeof PublicSign_inRoute
   '/sign_up': typeof PublicSign_upRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_public': typeof PublicRouteRouteWithChildren
+  '/_authed/settings': typeof AuthedSettingsRoute
   '/_public/recovery': typeof PublicRecoveryRoute
   '/_public/sign_in': typeof PublicSign_inRoute
   '/_public/sign_up': typeof PublicSign_upRoute
@@ -96,6 +105,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/settings'
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/settings'
     | '/recovery'
     | '/sign_in'
     | '/sign_up'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authed'
     | '/_public'
+    | '/_authed/settings'
     | '/_public/recovery'
     | '/_public/sign_in'
     | '/_public/sign_up'
@@ -190,6 +202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicRecoveryRouteImport
       parentRoute: typeof PublicRouteRoute
     }
+    '/_authed/settings': {
+      id: '/_authed/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -201,10 +220,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedRouteRouteChildren {
+  AuthedSettingsRoute: typeof AuthedSettingsRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedSettingsRoute: AuthedSettingsRoute,
   AuthedIndexRoute: AuthedIndexRoute,
 }
 

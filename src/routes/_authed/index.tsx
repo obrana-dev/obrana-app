@@ -1,20 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useLogout, useSession } from "@/queries/auth";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authed/")({
-	component: App,
+	component: Dashboard,
 });
 
-function App() {
-	const mutation = useLogout();
-	const { data } = useSession();
+function getGreeting(hour: number): string {
+	if (hour >= 6 && hour < 12) {
+		return "Buen día";
+	}
+	if (hour >= 12 && hour < 20) {
+		return "Buenas tardes";
+	}
+	return "Buenas noches";
+}
+
+function Dashboard() {
+	const { data: session } = useSession();
+	const hour = new Date().getHours();
+	const greeting = getGreeting(hour);
+	const name =
+		session?.user?.name || session?.user?.email?.split("@")[0] || "Usuario";
+
 	return (
-		<div className="flex-col h-full w-full flex flex-1 items-center justify-center">
-			<div className="max-w-100">{JSON.stringify(data, null, 3)}</div>
-			<button onClick={() => mutation.mutate()} type="button">
-				Logout
-			</button>
-			Authenticated dashboard
+		<div className="p-6">
+			<h1 className="text-3xl font-semibold text-gray-900">
+				{greeting}, {name}
+			</h1>
 		</div>
 	);
 }

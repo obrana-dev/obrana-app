@@ -39,10 +39,11 @@ export function TextField({
 	label,
 	description,
 	error,
+	className,
 	...props
 }: TextFieldProps & { label: string; description?: string; error?: string }) {
 	return (
-		<AriaTextField {...props} className="w-full flex flex-col">
+		<AriaTextField {...props} className={className || "w-full flex flex-col"}>
 			<Label className={labelClasses()}>{label}</Label>
 			<Input className={inputClasses({ hasError: !!error })} />
 			{description && (

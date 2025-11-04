@@ -8,6 +8,20 @@
       "when": 1761967478864,
       "tag": "0000_lethal_dakota_north",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762143151427,
+      "tag": "0001_harsh_killer_shrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762232417534,
+      "tag": "0002_pale_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

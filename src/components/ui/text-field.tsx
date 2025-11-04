@@ -41,11 +41,19 @@ export function TextField({
 	error,
 	className,
 	...props
-}: TextFieldProps & { label: string; description?: string; error?: string }) {
+}: TextFieldProps & {
+	label: string;
+	description?: string;
+	error?: string;
+	step?: string;
+}) {
 	return (
 		<AriaTextField {...props} className={className || "w-full flex flex-col"}>
 			<Label className={labelClasses()}>{label}</Label>
-			<Input className={inputClasses({ hasError: !!error })} />
+			<Input
+				className={inputClasses({ hasError: !!error })}
+				step={props.step}
+			/>
 			{description && (
 				<Text
 					slot="description"

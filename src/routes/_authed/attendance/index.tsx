@@ -1,55 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/common/loading-state";
+import { AttendanceHeader } from "@/components/attendance/attendance-header";
+import { DaySelector } from "@/components/attendance/day-selector";
+import { EmployeeAttendanceCard } from "@/components/attendance/employee-attendance-card";
 import { useAppForm } from "@/hooks/form";
 import {
 	useBatchSaveAttendance,
 	useWeekAttendance,
+	weekAttendanceQueryOptions,
 } from "@/queries/attendance";
+import { formatDate, getWeekDates, getWeekStart } from "@/utils/date";
 
 export const Route = createFileRoute("/_authed/attendance/")({
 	component: WeeklyAttendance,
+	loader: async ({ context }) => {
+		// Pre-fetch current week's attendance
+		const currentWeekStart = getWeekStart(new Date());
+		const weekDates = getWeekDates(currentWeekStart);
+		const startDate = formatDate(weekDates[0]);
+		const endDate = formatDate(weekDates[6]);
+
+		await context.queryClient.ensureQueryData(
+			weekAttendanceQueryOptions(startDate, endDate),
+		);
+	},
 });
-
-// Helper to get the start of the week (Monday)
-function getWeekStart(date: Date) {
-	const d = new Date(date);
-	const day = d.getDay();
-	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-	return new Date(d.setDate(diff));
-}
-
-// Helper to format date as YYYY-MM-DD
-function formatDate(date: Date) {
-	return date.toISOString().split("T")[0];
-}
-
-// Get array of dates for the week
-function getWeekDates(weekStart: Date) {
-	const dates = [];
-	for (let i = 0; i < 7; i++) {
-		const date = new Date(weekStart);
-		date.setDate(weekStart.getDate() + i);
-		dates.push(date);
-	}
-	return dates;
-}
-
-const dayNames = [
-	"Lunes",
-	"Martes",
-	"Miércoles",
-	"Jueves",
-	"Viernes",
-	"Sábado",
-	"Domingo",
-];
 
 function WeeklyAttendance() {
 	const [currentWeekStart, setCurrentWeekStart] = useState(
 		getWeekStart(new Date()),
+	);
+	const [selectedDayIndex, setSelectedDayIndex] = useState(
+		new Date().getDay() === 0 ? 6 : new Date().getDay() - 1,
 	);
 
 	const weekDates = getWeekDates(currentWeekStart);
@@ -73,20 +57,20 @@ function WeeklyAttendance() {
 
 	const goToCurrentWeek = () => {
 		setCurrentWeekStart(getWeekStart(new Date()));
+		const today = new Date().getDay();
+		setSelectedDayIndex(today === 0 ? 6 : today - 1);
 	};
 
 	if (isLoading || !employees) {
-		return (
-			<div className="p-6">
-				<p>Cargando asistencia...</p>
-			</div>
-		);
+		return <LoadingState message="Cargando asistencia..." />;
 	}
 
 	return (
 		<AttendanceForm
 			employees={employees}
 			weekDates={weekDates}
+			selectedDayIndex={selectedDayIndex}
+			onSelectDay={setSelectedDayIndex}
 			onPreviousWeek={goToPreviousWeek}
 			onNextWeek={goToNextWeek}
 			onCurrentWeek={goToCurrentWeek}
@@ -97,6 +81,8 @@ function WeeklyAttendance() {
 function AttendanceForm({
 	employees,
 	weekDates,
+	selectedDayIndex,
+	onSelectDay,
 	onPreviousWeek,
 	onNextWeek,
 	onCurrentWeek,
@@ -112,6 +98,8 @@ function AttendanceForm({
 		}>;
 	}>;
 	weekDates: Date[];
+	selectedDayIndex: number;
+	onSelectDay: (index: number) => void;
 	onPreviousWeek: () => void;
 	onNextWeek: () => void;
 	onCurrentWeek: () => void;
@@ -184,156 +172,179 @@ function AttendanceForm({
 		},
 	});
 
-	return (
-		<div className="p-6">
-			<div className="flex items-center justify-between mb-6">
-				<h1 className="text-2xl font-semibold text-gray-900">
-					Asistencia Semanal
-				</h1>
-				<div className="flex items-center gap-2">
-					<Button size="sm" color="ghost" onPress={onPreviousWeek}>
-						<ChevronLeft className="w-4 h-4" />
-					</Button>
-					<Button size="sm" color="ghost" onPress={onCurrentWeek}>
-						Semana Actual
-					</Button>
-					<Button size="sm" color="ghost" onPress={onNextWeek}>
-						<ChevronRight className="w-4 h-4" />
-					</Button>
-				</div>
-			</div>
+	const selectedDate = weekDates[selectedDayIndex];
+	const selectedDateStr = formatDate(selectedDate);
 
-			<div className="mb-4 text-gray-600">
-				Semana del {weekDates[0].toLocaleDateString("es-AR")} al{" "}
-				{weekDates[6].toLocaleDateString("es-AR")}
-			</div>
+	return (
+		<div className="min-h-screen bg-gray-50 flex flex-col">
+			<AttendanceHeader
+				weekDates={weekDates}
+				onPreviousWeek={onPreviousWeek}
+				onNextWeek={onNextWeek}
+				onCurrentWeek={onCurrentWeek}
+			/>
+
+			<DaySelector
+				weekDates={weekDates}
+				selectedDayIndex={selectedDayIndex}
+				onSelectDay={onSelectDay}
+			/>
 
 			<form
+				className="flex-1 flex flex-col"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
 			>
-				{/* Attendance Grid */}
-				<div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-6">
-					<table className="w-full">
-						<thead className="bg-gray-50">
-							<tr>
-								<th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 sticky left-0 bg-gray-50 border-r border-gray-200">
-									Empleado
-								</th>
-								<th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 border-r border-gray-200">
-									Tipo
-								</th>
-								{weekDates.map((date, index) => (
-									<th
-										key={date.toISOString()}
-										className="px-4 py-3 text-center text-xs font-semibold text-gray-900 min-w-[100px]"
-									>
-										<div>{dayNames[index]}</div>
-										<div className="text-gray-500 font-normal">
-											{date.getDate()}/{date.getMonth() + 1}
-										</div>
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-200">
-							{employees.map((employee) => (
-								<tr key={employee.id} className="hover:bg-gray-50">
-									<td className="px-4 py-3 text-sm font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200">
-										{employee.firstName} {employee.lastName}
-									</td>
-									<td className="px-4 py-3 text-center text-xs text-gray-600 border-r border-gray-200">
-										{employee.employmentType === "HOURLY" && "Hora"}
-										{employee.employmentType === "DAILY" && "Día"}
-										{employee.employmentType === "SUB_CONTRACTOR" && "Sub"}
-									</td>
-									{weekDates.map((date) => {
-										const dateStr = formatDate(date);
-										const fieldName = `${employee.id}|${dateStr}`;
-										const isWeekend =
-											date.getDay() === 0 || date.getDay() === 6;
-
-										return (
-											<td
-												key={date.toISOString()}
-												className={`px-2 py-2 ${isWeekend ? "bg-gray-50" : ""}`}
-											>
-												{/* Use form.Field for raw HTML inputs in table cells */}
-												<form.Field name={fieldName}>
-													{(field) =>
-														employee.employmentType === "HOURLY" ? (
-															<input
-																type="number"
-																step="0.5"
-																min="0"
-																max="24"
-																value={field.state.value || ""}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																onBlur={field.handleBlur}
-																className="w-full text-center px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-																placeholder="0"
-															/>
-														) : employee.employmentType === "DAILY" ? (
-															<select
-																value={field.state.value || ""}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																onBlur={field.handleBlur}
-																className="w-full text-center px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-															>
-																<option value="">-</option>
-																<option value="1">Completo (1)</option>
-																<option value="0.5">Medio (0.5)</option>
-																<option value="0">Ausente (0)</option>
-															</select>
-														) : (
-															<input
-																type="number"
-																step="0.5"
-																min="0"
-																value={field.state.value || ""}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																onBlur={field.handleBlur}
-																className="w-full text-center px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-																placeholder="0"
-															/>
-														)
-													}
-												</form.Field>
-											</td>
-										);
-									})}
-								</tr>
-							))}
-						</tbody>
-					</table>
-
+				{/* Mobile: Card View */}
+				<div className="md:hidden flex-1 px-4 py-4 space-y-3 pb-24">
+					{employees.map((employee) => {
+						const fieldName = `${employee.id}|${selectedDateStr}`;
+						return (
+							<form.Field key={fieldName} name={fieldName}>
+								{(field) => (
+									<EmployeeAttendanceCard employee={employee} field={field} />
+								)}
+							</form.Field>
+						);
+					})}
 					{employees.length === 0 && (
-						<div className="p-8 text-center text-gray-500">
-							No hay empleados activos
+						<div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+							<p className="text-gray-500">No hay empleados activos</p>
 						</div>
 					)}
 				</div>
 
-				{/* Save Button - use form.AppForm pattern */}
-				{employees.length > 0 && (
-					<div className="flex justify-end">
-						<form.AppForm>
-							<form.SubscribeButton
-								label={batchSave.isPending ? "Guardando..." : "Guardar Cambios"}
-							/>
-						</form.AppForm>
+				{/* Desktop: Table View */}
+				<div className="hidden md:block flex-1 p-6 pb-0">
+					<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+						<div className="overflow-x-auto">
+							<table className="w-full">
+								<thead className="bg-gray-50 sticky top-0 z-10">
+									<tr>
+										<th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 sticky left-0 bg-gray-50 border-r border-gray-200 min-w-[150px]">
+											Empleado
+										</th>
+										<th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 border-r border-gray-200">
+											Tipo
+										</th>
+										{weekDates.map((date, index) => (
+											<th
+												key={date.toISOString()}
+												className={`px-4 py-3 text-center text-xs font-semibold min-w-[120px] ${
+													date.getDay() === 0 || date.getDay() === 6 ? "bg-gray-100" : ""
+												}`}
+											>
+												<div className="font-semibold text-gray-900">
+													{["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][index]}
+												</div>
+												<div className="text-gray-500 font-normal text-xs mt-0.5">
+													{date.getDate()}/{date.getMonth() + 1}
+												</div>
+											</th>
+										))}
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-gray-200">
+									{employees.map((employee) => (
+										<tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+											<td className="px-4 py-3 text-sm font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200">
+												{employee.firstName} {employee.lastName}
+											</td>
+											<td className="px-4 py-3 text-center text-xs text-gray-600 border-r border-gray-200">
+												{employee.employmentType === "HOURLY" && "Hora"}
+												{employee.employmentType === "DAILY" && "Día"}
+												{employee.employmentType === "SUB_CONTRACTOR" && "Sub"}
+											</td>
+											{weekDates.map((date) => {
+												const dateStr = formatDate(date);
+												const fieldName = `${employee.id}|${dateStr}`;
+												const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
+
+												return (
+													<td
+														key={date.toISOString()}
+														className={`px-2 py-2 ${isWeekendDay ? "bg-gray-50" : ""}`}
+													>
+														<form.Field name={fieldName}>
+															{(field) =>
+																employee.employmentType === "HOURLY" ? (
+																	<input
+																		type="number"
+																		step="0.5"
+																		min="0"
+																		max="24"
+																		value={field.state.value || ""}
+																		onChange={(e) => field.handleChange(e.target.value)}
+																		onBlur={field.handleBlur}
+																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+																		placeholder="0"
+																	/>
+																) : employee.employmentType === "DAILY" ? (
+																	<select
+																		value={field.state.value || ""}
+																		onChange={(e) => field.handleChange(e.target.value)}
+																		onBlur={field.handleBlur}
+																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+																	>
+																		<option value="">-</option>
+																		<option value="1">Completo (1)</option>
+																		<option value="0.5">Medio (0.5)</option>
+																		<option value="0">Ausente (0)</option>
+																	</select>
+																) : (
+																	<input
+																		type="number"
+																		step="0.5"
+																		min="0"
+																		value={field.state.value || ""}
+																		onChange={(e) => field.handleChange(e.target.value)}
+																		onBlur={field.handleBlur}
+																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+																		placeholder="0"
+																	/>
+																)
+															}
+														</form.Field>
+													</td>
+												);
+											})}
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 					</div>
+				</div>
+
+				{/* Sticky Save Button */}
+				{employees.length > 0 && (
+					<>
+						{/* Mobile */}
+						<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+							<form.AppForm>
+								<form.SubscribeButton
+									label={batchSave.isPending ? "Guardando..." : "Guardar Cambios"}
+									className="w-full"
+								/>
+							</form.AppForm>
+						</div>
+						{/* Desktop */}
+						<div className="hidden md:block px-6 pb-6 pt-4">
+							<div className="flex justify-end">
+								<form.AppForm>
+									<form.SubscribeButton
+										label={batchSave.isPending ? "Guardando..." : "Guardar Cambios"}
+									/>
+								</form.AppForm>
+							</div>
+						</div>
+					</>
 				)}
 			</form>
 		</div>
 	);
 }
+

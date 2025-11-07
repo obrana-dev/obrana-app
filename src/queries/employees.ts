@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -9,25 +14,32 @@ import {
 	updateEmployeeFn,
 } from "@/services/employees";
 
-// List all employees
-export function useEmployees() {
-	return useQuery({
+// Query options
+export const employeesQueryOptions = () =>
+	queryOptions({
 		queryKey: ["employees"],
 		queryFn: async () => {
 			return await listEmployeesFn();
 		},
 	});
-}
 
-// Get single employee
-export function useEmployee(employeeId: string) {
-	return useQuery({
+export const employeeQueryOptions = (employeeId: string) =>
+	queryOptions({
 		queryKey: ["employees", employeeId],
 		queryFn: async () => {
 			return await getEmployeeFn({ data: employeeId });
 		},
 		enabled: !!employeeId,
 	});
+
+// List all employees
+export function useEmployees() {
+	return useQuery(employeesQueryOptions());
+}
+
+// Get single employee
+export function useEmployee(employeeId: string) {
+	return useQuery(employeeQueryOptions(employeeId));
 }
 
 // Create employee

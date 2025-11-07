@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
 	batchSaveAttendanceFn,
@@ -6,15 +11,22 @@ import {
 	saveAttendanceFn,
 } from "@/services/attendance";
 
-// Get attendance for a week
-export function useWeekAttendance(startDate: string, endDate: string) {
-	return useQuery({
+// Query options
+export const weekAttendanceQueryOptions = (
+	startDate: string,
+	endDate: string,
+) =>
+	queryOptions({
 		queryKey: ["attendance", startDate, endDate],
 		queryFn: async () => {
 			return await getWeekAttendanceFn({ data: { startDate, endDate } });
 		},
 		enabled: !!startDate && !!endDate,
 	});
+
+// Get attendance for a week
+export function useWeekAttendance(startDate: string, endDate: string) {
+	return useQuery(weekAttendanceQueryOptions(startDate, endDate));
 }
 
 // Save single attendance record

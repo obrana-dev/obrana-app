@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
 	getPayrollHistoryFn,
@@ -6,15 +11,30 @@ import {
 	savePayrollFn,
 } from "@/services/payroll";
 
-// Get payroll summary for a period
-export function usePayrollSummary(startDate: string, endDate: string) {
-	return useQuery({
+// Query options
+export const payrollSummaryQueryOptions = (
+	startDate: string,
+	endDate: string,
+) =>
+	queryOptions({
 		queryKey: ["payroll", startDate, endDate],
 		queryFn: async () => {
 			return await getPayrollSummaryFn({ data: { startDate, endDate } });
 		},
 		enabled: !!startDate && !!endDate,
 	});
+
+export const payrollHistoryQueryOptions = () =>
+	queryOptions({
+		queryKey: ["payroll-history"],
+		queryFn: async () => {
+			return await getPayrollHistoryFn();
+		},
+	});
+
+// Get payroll summary for a period
+export function usePayrollSummary(startDate: string, endDate: string) {
+	return useQuery(payrollSummaryQueryOptions(startDate, endDate));
 }
 
 // Save payroll
@@ -36,10 +56,5 @@ export function useSavePayroll() {
 
 // Get payroll history
 export function usePayrollHistory() {
-	return useQuery({
-		queryKey: ["payroll-history"],
-		queryFn: async () => {
-			return await getPayrollHistoryFn();
-		},
-	});
+	return useQuery(payrollHistoryQueryOptions());
 }

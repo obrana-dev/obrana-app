@@ -1,39 +1,38 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
-import { z } from "zod";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/common/loading-state";
+import { EmployeeFormActions } from "@/components/employees/employee-form-actions";
+import { EmployeeFormHeader } from "@/components/employees/employee-form-header";
+import {
+	BankDetailsSection,
+	InsuranceSection,
+	JobPaySection,
+	PersonalInformationSection,
+} from "@/components/employees/employee-form-sections";
 import { useAppForm } from "@/hooks/form";
-import { useEmployee, useUpdateEmployee } from "@/queries/employees";
+import {
+	employeeQueryOptions,
+	useEmployee,
+	useUpdateEmployee,
+} from "@/queries/employees";
+import { employeeFormSchema } from "@/schemas/employee";
 
 export const Route = createFileRoute("/_authed/employees/$employeeId")({
 	component: EditEmployee,
-});
-
-const employeeFormSchema = z.object({
-	firstName: z.string().min(1, "El nombre es requerido"),
-	lastName: z.string().min(1, "El apellido es requerido"),
-	phone: z.string().min(1, "El teléfono es requerido"),
-	email: z.union([
-		z.string().email({ message: "Email inválido" }),
-		z.literal(""),
-	]),
-	address: z.string(),
-	nationalId: z.string(),
-	jobCategory: z.string(),
-	employmentType: z.enum(["HOURLY", "DAILY", "SUB_CONTRACTOR"]),
-	payFrequency: z.enum(["WEEKLY", "BI_WEEKLY", "MONTHLY"]),
-	hireDate: z.string(),
-	rate: z.string(),
-	insuranceDetails: z.string(),
-	bankName: z.string(),
-	accountAlias: z.string(),
-	cbuCvu: z.string(),
+	loader: async ({ context, params }) => {
+		await context.queryClient.ensureQueryData(
+			employeeQueryOptions(params.employeeId),
+		);
+	},
 });
 
 function EditEmployee() {
 	const { employeeId } = Route.useParams();
 	const { data: employee, isLoading } = useEmployee(employeeId);
 	const updateEmployee = useUpdateEmployee();
+	const [showBankDetails, setShowBankDetails] = useState(false);
+	const [showInsurance, setShowInsurance] = useState(false);
 
 	const form = useAppForm({
 		defaultValues: {
@@ -79,171 +78,60 @@ function EditEmployee() {
 	});
 
 	if (isLoading) {
-		return (
-			<div className="p-6">
-				<p>Cargando empleado...</p>
-			</div>
-		);
+		return <LoadingState message="Cargando empleado..." />;
 	}
 
 	if (!employee) {
 		return (
-			<div className="p-6">
-				<p>Empleado no encontrado</p>
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+					<p className="text-gray-900 mb-4">Empleado no encontrado</p>
+					<Link to="/employees">
+						<Button>Volver a empleados</Button>
+					</Link>
+				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-6 max-w-4xl">
-			<div className="mb-6">
-				<Link
-					to="/employees"
-					className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-				>
-					<ArrowLeft className="w-4 h-4" />
-					Volver a empleados
-				</Link>
-				<h1 className="text-2xl font-semibold text-gray-900">
-					Editar Empleado: {employee.firstName} {employee.lastName}
-				</h1>
-			</div>
+		<div className="min-h-screen bg-gray-50 pb-20 sm:pb-6">
+			<EmployeeFormHeader
+				title="Editar Empleado"
+				subtitle={`${employee.firstName} ${employee.lastName}`}
+			/>
 
 			<form
-				className="space-y-6"
+				className="max-w-3xl mx-auto px-4 py-6 sm:px-6 space-y-4"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
 			>
-				{/* Personal Information */}
-				<section className="bg-white rounded-lg border border-gray-200 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 mb-4">
-						Información Personal
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<form.AppField name="firstName">
-							{(field) => <field.TextField label="Nombre *" />}
-						</form.AppField>
-						<form.AppField name="lastName">
-							{(field) => <field.TextField label="Apellido *" />}
-						</form.AppField>
-						<form.AppField name="phone">
-							{(field) => <field.TextField label="Teléfono *" type="tel" />}
-						</form.AppField>
-						<form.AppField name="email">
-							{(field) => <field.TextField label="Email" type="email" />}
-						</form.AppField>
-						<form.AppField name="address">
-							{(field) => <field.TextField label="Dirección" />}
-						</form.AppField>
-						<form.AppField name="nationalId">
-							{(field) => <field.TextField label="DNI" />}
-						</form.AppField>
-					</div>
-				</section>
-
-				{/* Job & Pay */}
-				<section className="bg-white rounded-lg border border-gray-200 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 mb-4">
-						Trabajo y Pago
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<form.AppField name="jobCategory">
-							{(field) => (
-								<field.TextField
-									label="Categoría de Trabajo"
-									description="Ej: Albañil, Electricista"
-								/>
-							)}
-						</form.AppField>
-						<form.AppField name="hireDate">
-							{(field) => (
-								<field.TextField label="Fecha de Contratación" type="date" />
-							)}
-						</form.AppField>
-						<form.AppField name="employmentType">
-							{(field) => (
-								<field.SelectField
-									label="Tipo de Empleo *"
-									values={[
-										{ label: "Por Hora", value: "HOURLY" },
-										{ label: "Por Día (Jornal)", value: "DAILY" },
-										{ label: "Subcontratista", value: "SUB_CONTRACTOR" },
-									]}
-								/>
-							)}
-						</form.AppField>
-						<form.AppField name="rate">
-							{(field) => (
-								<field.TextField
-									label="Tarifa"
-									type="number"
-									step="0.01"
-									description="Dejar vacío para mantener la tarifa actual"
-								/>
-							)}
-						</form.AppField>
-						<form.AppField name="payFrequency">
-							{(field) => (
-								<field.SelectField
-									label="Frecuencia de Pago *"
-									values={[
-										{ label: "Semanal", value: "WEEKLY" },
-										{ label: "Quincenal", value: "BI_WEEKLY" },
-										{ label: "Mensual", value: "MONTHLY" },
-									]}
-								/>
-							)}
-						</form.AppField>
-						{employee.currentRate && (
-							<div className="flex items-end">
-								<div className="text-sm text-gray-600">
-									<strong>Tarifa actual:</strong> ${employee.currentRate}
-								</div>
-							</div>
-						)}
-					</div>
-				</section>
-
-				{/* Bank Details */}
-				<section className="bg-white rounded-lg border border-gray-200 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 mb-4">
-						Datos Bancarios (Opcional)
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<form.AppField name="bankName">
-							{(field) => <field.TextField label="Banco" />}
-						</form.AppField>
-						<form.AppField name="accountAlias">
-							{(field) => <field.TextField label="Alias" />}
-						</form.AppField>
-						<form.AppField name="cbuCvu">
-							{(field) => <field.TextField label="CBU/CVU" />}
-						</form.AppField>
-					</div>
-				</section>
-
-				{/* Insurance */}
-				<section className="bg-white rounded-lg border border-gray-200 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 mb-4">
-						Seguro (Opcional)
-					</h2>
-					<form.AppField name="insuranceDetails">
-						{(field) => <field.TextAreaField label="Detalles del Seguro" />}
-					</form.AppField>
-				</section>
-
-				{/* Submit */}
-				<div className="flex gap-4">
-					<form.AppForm>
-						<form.SubscribeButton label="Guardar Cambios" />
-					</form.AppForm>
-					<Link to="/employees">
-						<Button color="ghost">Cancelar</Button>
-					</Link>
-				</div>
+				<PersonalInformationSection form={form} />
+				<JobPaySection
+					form={form}
+					currentRate={employee.currentRate}
+					isEdit={true}
+				/>
+				<BankDetailsSection
+					form={form}
+					isOpen={showBankDetails}
+					onToggle={() => setShowBankDetails(!showBankDetails)}
+				/>
+				<InsuranceSection
+					form={form}
+					isOpen={showInsurance}
+					onToggle={() => setShowInsurance(!showInsurance)}
+				/>
+				<EmployeeFormActions
+					submitButton={
+						<form.AppForm>
+							<form.SubscribeButton label="Guardar Cambios" />
+						</form.AppForm>
+					}
+				/>
 			</form>
 		</div>
 	);

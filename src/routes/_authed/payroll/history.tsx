@@ -1,10 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePayrollHistory } from "@/queries/payroll";
+import {
+	payrollHistoryQueryOptions,
+	usePayrollHistory,
+} from "@/queries/payroll";
 
 export const Route = createFileRoute("/_authed/payroll/history")({
 	component: PayrollHistory,
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData(payrollHistoryQueryOptions());
+	},
 });
 
 // Helper to format date strings (YYYY-MM-DD) to local display without timezone issues

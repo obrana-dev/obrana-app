@@ -2,7 +2,7 @@ import { Button as AriaButton, type ButtonProps } from "react-aria-components";
 import { tv } from "tailwind-variants";
 
 const classes = tv({
-	base: "rounded-md data-[pressed]:scale-97 transition-transform duration-[0.16s] ease-out-quad",
+	base: "rounded-md data-[pressed]:scale-97 transition-transform duration-[0.16s] ease-out-quad flex items-center justify-center",
 	variants: {
 		size: {
 			sm: "px-3 py-1.5 text-sm",

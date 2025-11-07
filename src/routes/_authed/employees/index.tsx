@@ -1,118 +1,113 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Plus, Users } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useEmployees, useToggleEmployeeStatus } from "@/queries/employees";
+import { EmptyState } from "@/components/common/empty-state";
+import { LoadingState } from "@/components/common/loading-state";
+import { EmployeeCard } from "@/components/employees/employee-card";
+import { EmployeeListHeader } from "@/components/employees/employee-list-header";
+import {
+	employeesQueryOptions,
+	useEmployees,
+	useToggleEmployeeStatus,
+} from "@/queries/employees";
 
 export const Route = createFileRoute("/_authed/employees/")({
 	component: EmployeeList,
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData(employeesQueryOptions());
+	},
 });
 
 function EmployeeList() {
 	const { data: employees, isLoading } = useEmployees();
 	const toggleStatus = useToggleEmployeeStatus();
 	const [showInactive, setShowInactive] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
-	const filteredEmployees = employees?.filter((emp) =>
-		showInactive ? !emp.isActive : emp.isActive,
-	);
+	const filteredEmployees = useMemo(() => {
+		if (!employees) return [];
+
+		return employees
+			.filter((emp) => (showInactive ? !emp.isActive : emp.isActive))
+			.filter((emp) => {
+				if (!searchQuery) return true;
+				const query = searchQuery.toLowerCase();
+				return (
+					emp.firstName.toLowerCase().includes(query) ||
+					emp.lastName.toLowerCase().includes(query) ||
+					emp.phone?.toLowerCase().includes(query) ||
+					emp.email?.toLowerCase().includes(query) ||
+					emp.jobCategory?.toLowerCase().includes(query)
+				);
+			});
+	}, [employees, showInactive, searchQuery]);
+
+	const handleToggleStatus = (id: string, isActive: boolean) => {
+		toggleStatus.mutate({ data: { id, isActive } });
+	};
 
 	if (isLoading) {
-		return (
-			<div className="p-6">
-				<p>Cargando empleados...</p>
-			</div>
-		);
+		return <LoadingState message="Cargando empleados..." />;
 	}
 
 	return (
-		<div className="p-6">
-			<div className="flex items-center justify-between mb-6">
-				<h1 className="text-2xl font-semibold text-gray-900">Empleados</h1>
-				<Link to="/employees/new">
-					<Button className="flex items-center gap-2">
-						<Plus className="w-4 h-4" />
-						Nuevo Empleado
-					</Button>
-				</Link>
-			</div>
-
-			{/* Toggle Active/Inactive */}
-			<div className="mb-4 flex gap-2">
-				<Button
-					onPress={() => setShowInactive(false)}
-					color={!showInactive ? "primary" : "ghost"}
-					size="sm"
-				>
-					Activos
-				</Button>
-				<Button
-					onPress={() => setShowInactive(true)}
-					color={showInactive ? "primary" : "ghost"}
-					size="sm"
-				>
-					Inactivos
-				</Button>
-			</div>
+		<div className="min-h-screen bg-gray-50">
+			<EmployeeListHeader
+				count={filteredEmployees.length}
+				searchQuery={searchQuery}
+				onSearchChange={setSearchQuery}
+				showInactive={showInactive}
+				onToggleInactive={setShowInactive}
+			/>
 
 			{/* Employee List */}
-			<div className="bg-white rounded-lg border border-gray-200">
-				{filteredEmployees?.length === 0 ? (
-					<div className="p-8 text-center text-gray-500">
-						No hay empleados {showInactive ? "inactivos" : "activos"}
-					</div>
-				) : (
-					<div className="divide-y divide-gray-200">
-						{filteredEmployees?.map((employee) => (
-							<div
-								key={employee.id}
-								className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-							>
-								<div className="flex-1">
-									<Link
-										to="/employees/$employeeId"
-										params={{ employeeId: employee.id }}
-										className="block"
-									>
-										<h3 className="font-medium text-gray-900">
-											{employee.firstName} {employee.lastName}
-										</h3>
-										<div className="text-sm text-gray-500 flex gap-4 mt-1">
-											{employee.phone && <span>{employee.phone}</span>}
-											{employee.email && <span>{employee.email}</span>}
-											{employee.jobCategory && (
-												<span className="capitalize">
-													{employee.jobCategory}
-												</span>
-											)}
-										</div>
-									</Link>
-								</div>
-								<div className="flex items-center gap-2">
-									<span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-										{employee.employmentType}
-									</span>
-									<Button
-										size="sm"
-										color={employee.isActive ? "ghost" : "primary"}
-										onPress={() =>
-											toggleStatus.mutate({
-												data: {
-													id: employee.id,
-													isActive: !employee.isActive,
-												},
-											})
-										}
-										isDisabled={toggleStatus.isPending}
-									>
-										{employee.isActive ? "Desactivar" : "Activar"}
+			<div className="p-4 sm:p-6">
+				{filteredEmployees.length === 0 ? (
+					<EmptyState
+						icon={Users}
+						title={
+							searchQuery
+								? "No se encontraron empleados"
+								: `No hay empleados ${showInactive ? "inactivos" : "activos"}`
+						}
+						description={
+							searchQuery
+								? "Intenta con otros términos de búsqueda"
+								: "Comienza agregando tu primer empleado"
+						}
+						action={
+							!searchQuery ? (
+								<Link to="/employees/new">
+									<Button>
+										<Plus className="w-4 h-4 mr-2" />
+										Agregar Empleado
 									</Button>
-								</div>
-							</div>
+								</Link>
+							) : undefined
+						}
+					/>
+				) : (
+					<div className="grid grid-cols-1 gap-3 sm:gap-4">
+						{filteredEmployees.map((employee) => (
+							<EmployeeCard
+								key={employee.id}
+								employee={employee}
+								onToggleStatus={handleToggleStatus}
+								isPending={toggleStatus.isPending}
+							/>
 						))}
 					</div>
 				)}
 			</div>
+
+			{/* Floating Action Button - Mobile Only */}
+			<Link
+				to="/employees/new"
+				className="fixed bottom-6 right-6 sm:hidden w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+			>
+				<Plus className="w-6 h-6" />
+			</Link>
 		</div>
 	);
 }

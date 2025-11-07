@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui";
 import { useFormContext } from "@/hooks/form-context";
 
-export function SubscribeButton({ label }: { label: string }) {
+export function SubscribeButton({
+	label,
+	className,
+}: {
+	label: string;
+	className?: string;
+}) {
 	const form = useFormContext();
 	return (
 		<form.Subscribe selector={(state) => state.isSubmitting}>
@@ -11,6 +17,7 @@ export function SubscribeButton({ label }: { label: string }) {
 					color="secondary"
 					isDisabled={isSubmitting}
 					isPending={isSubmitting}
+					className={className}
 				>
 					{label}
 				</Button>

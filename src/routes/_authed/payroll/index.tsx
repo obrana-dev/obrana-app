@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
-import { usePayrollSummary, useSavePayroll } from "@/queries/payroll";
-
-export const Route = createFileRoute("/_authed/payroll/")({
-	component: RunPayroll,
-});
+import {
+	payrollSummaryQueryOptions,
+	usePayrollSummary,
+	useSavePayroll,
+} from "@/queries/payroll";
 
 // Helper to format date as YYYY-MM-DD
 function formatDate(date: Date) {
@@ -29,6 +29,22 @@ function getWeekEnd(weekStart: Date) {
 	d.setDate(d.getDate() + 6);
 	return d;
 }
+
+export const Route = createFileRoute("/_authed/payroll/")({
+	component: RunPayroll,
+	loader: async ({ context }) => {
+		// Pre-fetch current week's payroll
+		const today = new Date();
+		const defaultWeekStart = getWeekStart(today);
+		const defaultWeekEnd = getWeekEnd(defaultWeekStart);
+		const startDate = formatDate(defaultWeekStart);
+		const endDate = formatDate(defaultWeekEnd);
+
+		await context.queryClient.ensureQueryData(
+			payrollSummaryQueryOptions(startDate, endDate),
+		);
+	},
+});
 
 // Get the start of the month
 function getMonthStart(date: Date) {

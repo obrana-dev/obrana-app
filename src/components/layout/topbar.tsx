@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Menu as MenuIcon, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Menu,
@@ -11,7 +11,11 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useLogout } from "@/queries/auth";
 
-export function Topbar() {
+interface TopbarProps {
+	onMenuClick: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
 	const { data: session } = useSession();
 	const logout = useLogout();
 	const navigate = useNavigate();
@@ -26,13 +30,24 @@ export function Topbar() {
 
 	return (
 		<header className="border-b border-gray-200 bg-white">
-			<div className="flex items-center justify-between h-16 px-6">
-				<Link
-					to="/"
-					className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors"
-				>
-					Obrana
-				</Link>
+			<div className="flex items-center justify-between h-16 px-4 sm:px-6">
+				<div className="flex items-center gap-3">
+					<Button
+						onPress={onMenuClick}
+						color="ghost"
+						size="sm"
+						className="md:hidden"
+						aria-label="Toggle menu"
+					>
+						<MenuIcon className="w-5 h-5" />
+					</Button>
+					<Link
+						to="/"
+						className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors"
+					>
+						Obrana
+					</Link>
+				</div>
 
 				<MenuTrigger>
 					<Button color="ghost" size="sm" className="flex items-center gap-2">

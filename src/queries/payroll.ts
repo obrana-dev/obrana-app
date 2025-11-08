@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import {
 	getPayrollHistoryFn,
+	getPayrollRunsFn,
 	getPayrollSummaryFn,
 	savePayrollFn,
 } from "@/services/payroll";
@@ -32,6 +33,14 @@ export const payrollHistoryQueryOptions = () =>
 		},
 	});
 
+export const payrollRunsQueryOptions = () =>
+	queryOptions({
+		queryKey: ["payroll-runs"],
+		queryFn: async () => {
+			return await getPayrollRunsFn();
+		},
+	});
+
 // Get payroll summary for a period
 export function usePayrollSummary(startDate: string, endDate: string) {
 	return useQuery(payrollSummaryQueryOptions(startDate, endDate));
@@ -46,6 +55,7 @@ export function useSavePayroll() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["payroll"] });
 			queryClient.invalidateQueries({ queryKey: ["payroll-history"] });
+			queryClient.invalidateQueries({ queryKey: ["payroll-runs"] });
 			toast.success("Nómina guardada correctamente");
 		},
 		onError: (error: Error) => {
@@ -57,4 +67,9 @@ export function useSavePayroll() {
 // Get payroll history
 export function usePayrollHistory() {
 	return useQuery(payrollHistoryQueryOptions());
+}
+
+// Get payroll runs (grouped by pay period)
+export function usePayrollRuns() {
+	return useQuery(payrollRunsQueryOptions());
 }

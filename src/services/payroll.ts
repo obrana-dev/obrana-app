@@ -7,6 +7,7 @@ import {
 	employeePayRates,
 	employees,
 	payrollHistory,
+	payrollAdjustments,
 } from "@/db/schema";
 import authMiddleware from "@/middlewares/auth";
 
@@ -108,8 +109,15 @@ const savePayrollSchema = z.object({
 			employeeId: z.string(),
 			employeeName: z.string(),
 			grossPay: z.string(),
-			bonuses: z.string().optional().nullable(),
-			deductions: z.string().optional().nullable(),
+			adjustments: z
+				.array(
+					z.object({
+						type: z.enum(["BONUS", "DEDUCTION"]),
+						description: z.string(),
+						amount: z.string(),
+					}),
+				)
+				.default([]),
 			netPay: z.string(),
 		}),
 	),
@@ -137,28 +145,53 @@ export const savePayrollFn = createServerFn({ method: "POST" })
 			throw new Error("No valid employees found");
 		}
 
-		// Insert payroll history records
-		const results = await db
-			.insert(payrollHistory)
-			.values(
-				validRecords.map((record) => ({
-					employeeId: record.employeeId,
-					employeeName: record.employeeName,
-					payPeriodStart: data.payPeriodStart,
-					payPeriodEnd: data.payPeriodEnd,
-					grossPay: record.grossPay,
-					bonuses: record.bonuses || "0",
-					deductions: record.deductions || "0",
-					netPay: record.netPay,
-					paidDate: new Date().toISOString().split("T")[0],
-				})),
-			)
-			.returning();
+		// Insert payroll history records and their adjustments
+		const results = await Promise.all(
+			validRecords.map(async (record) => {
+				// Calculate totals from adjustments
+				const bonuses = record.adjustments
+					.filter((adj) => adj.type === "BONUS")
+					.reduce((sum, adj) => sum + Number.parseFloat(adj.amount), 0);
+
+				const deductions = record.adjustments
+					.filter((adj) => adj.type === "DEDUCTION")
+					.reduce((sum, adj) => sum + Number.parseFloat(adj.amount), 0);
+
+				// Insert payroll history record
+				const [payrollRecord] = await db
+					.insert(payrollHistory)
+					.values({
+						employeeId: record.employeeId,
+						employeeName: record.employeeName,
+						payPeriodStart: data.payPeriodStart,
+						payPeriodEnd: data.payPeriodEnd,
+						grossPay: record.grossPay,
+						bonuses: bonuses.toFixed(2),
+						deductions: deductions.toFixed(2),
+						netPay: record.netPay,
+					})
+					.returning();
+
+				// Insert adjustment items if any
+				if (record.adjustments.length > 0) {
+					await db.insert(payrollAdjustments).values(
+						record.adjustments.map((adj) => ({
+							payrollHistoryId: payrollRecord.id,
+							type: adj.type,
+							description: adj.description,
+							amount: adj.amount,
+						})),
+					);
+				}
+
+				return payrollRecord;
+			}),
+		);
 
 		return results;
 	});
 
-// Get payroll history
+// Get payroll history (individual records)
 export const getPayrollHistoryFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.handler(async ({ context }) => {
@@ -183,4 +216,90 @@ export const getPayrollHistoryFn = createServerFn({ method: "GET" })
 			.orderBy(desc(payrollHistory.paymentDate));
 
 		return history;
+	});
+
+// Get payroll runs (grouped by pay period)
+export const getPayrollRunsFn = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.handler(async ({ context }) => {
+		// Get all payroll history for the contractor's employees
+		const history = await db
+			.select({
+				id: payrollHistory.id,
+				employeeId: payrollHistory.employeeId,
+				employeeName: payrollHistory.employeeName,
+				payPeriodStart: payrollHistory.payPeriodStart,
+				payPeriodEnd: payrollHistory.payPeriodEnd,
+				paymentDate: payrollHistory.paymentDate,
+				grossPay: payrollHistory.grossPay,
+				bonuses: payrollHistory.bonuses,
+				deductions: payrollHistory.deductions,
+				netPay: payrollHistory.netPay,
+			})
+			.from(payrollHistory)
+			.innerJoin(employees, eq(payrollHistory.employeeId, employees.id))
+			.where(eq(employees.contractorId, context.session.user.id))
+			.orderBy(desc(payrollHistory.paymentDate));
+
+		// Group by pay period and payment date
+		const grouped = new Map<
+			string,
+			{
+				payPeriodStart: string;
+				payPeriodEnd: string;
+				paymentDate: string;
+				employeeCount: number;
+				totalGross: number;
+				totalBonuses: number;
+				totalDeductions: number;
+				totalNet: number;
+				employees: Array<{
+					id: string;
+					employeeId: string;
+					employeeName: string;
+					grossPay: string;
+					bonuses: string;
+					deductions: string;
+					netPay: string;
+				}>;
+			}
+		>();
+
+		for (const record of history) {
+			const key = `${record.payPeriodStart}_${record.payPeriodEnd}_${record.paymentDate}`;
+
+			if (!grouped.has(key)) {
+				grouped.set(key, {
+					payPeriodStart: record.payPeriodStart,
+					payPeriodEnd: record.payPeriodEnd,
+					paymentDate: record.paymentDate,
+					employeeCount: 0,
+					totalGross: 0,
+					totalBonuses: 0,
+					totalDeductions: 0,
+					totalNet: 0,
+					employees: [],
+				});
+			}
+
+			const group = grouped.get(key);
+			if (group) {
+				group.employeeCount += 1;
+				group.totalGross += Number.parseFloat(record.grossPay);
+				group.totalBonuses += Number.parseFloat(record.bonuses || "0");
+				group.totalDeductions += Number.parseFloat(record.deductions || "0");
+				group.totalNet += Number.parseFloat(record.netPay);
+				group.employees.push({
+					id: record.id,
+					employeeId: record.employeeId,
+					employeeName: record.employeeName,
+					grossPay: record.grossPay,
+					bonuses: record.bonuses || "0",
+					deductions: record.deductions || "0",
+					netPay: record.netPay,
+				});
+			}
+		}
+
+		return Array.from(grouped.values());
 	});

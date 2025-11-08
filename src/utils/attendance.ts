@@ -34,7 +34,6 @@ export function getEmploymentTypeShort(type: string): string {
  * Daily attendance options
  */
 export const DAILY_ATTENDANCE_OPTIONS = [
-	{ label: "-", value: "" },
 	{ label: "Completo (1)", value: "1" },
 	{ label: "Medio (0.5)", value: "0.5" },
 	{ label: "Ausente (0)", value: "0" },
@@ -74,7 +73,10 @@ export function getAttendanceStatusColor(
 /**
  * Format attendance value for display
  */
-export function formatAttendanceValue(value: string, employmentType: string): string {
+export function formatAttendanceValue(
+	value: string,
+	employmentType: string,
+): string {
 	if (!value || value === "") return "-";
 
 	if (employmentType === "DAILY") {

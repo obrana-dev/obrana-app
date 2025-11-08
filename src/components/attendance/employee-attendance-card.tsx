@@ -1,13 +1,10 @@
-import { Check, X } from "lucide-react";
-import type { FieldApi } from "@tanstack/react-form";
-import { getInitials } from "@/utils/employee";
+import { Check, Minus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
 	DAILY_ATTENDANCE_OPTIONS,
-	formatAttendanceValue,
-	getAttendanceStatus,
-	getAttendanceStatusColor,
 	getEmploymentTypeShort,
 } from "@/utils/attendance";
+import { getInitials } from "@/utils/employee";
 
 interface EmployeeAttendanceCardProps {
 	employee: {
@@ -16,7 +13,8 @@ interface EmployeeAttendanceCardProps {
 		lastName: string;
 		employmentType: string;
 	};
-	field: FieldApi<any, any, any, any>;
+	// biome-ignore lint/suspicious/noExplicitAny: React Form Field
+	field: any;
 }
 
 export function EmployeeAttendanceCard({
@@ -24,8 +22,6 @@ export function EmployeeAttendanceCard({
 	field,
 }: EmployeeAttendanceCardProps) {
 	const value = field.state.value || "";
-	const status = getAttendanceStatus(value);
-	const statusColor = getAttendanceStatusColor(status);
 
 	return (
 		<div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
@@ -46,23 +42,14 @@ export function EmployeeAttendanceCard({
 						{getEmploymentTypeShort(employee.employmentType)}
 					</p>
 				</div>
-
-				{/* Status Badge */}
-				{status !== "none" && (
-					<div className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusColor}`}>
-						{formatAttendanceValue(value, employee.employmentType)}
-					</div>
-				)}
 			</div>
 
 			{/* Attendance Input */}
 			<div className="space-y-2">
 				{employee.employmentType === "HOURLY" ? (
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1.5">
-							Horas trabajadas
-						</label>
 						<input
+							id={`hours-${employee.id}`}
 							type="number"
 							step="0.5"
 							min="0"
@@ -76,41 +63,50 @@ export function EmployeeAttendanceCard({
 					</div>
 				) : employee.employmentType === "DAILY" ? (
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Asistencia
-						</label>
-						<div className="grid grid-cols-2 gap-2">
+						<div className="grid grid-cols-3 gap-2">
 							{DAILY_ATTENDANCE_OPTIONS.map((option) => {
 								const isSelected = value === option.value;
-								const optionStatus = getAttendanceStatus(option.value);
+								let color: "success" | "warning" | "error" | "ghost" = "ghost";
+								let Icon = X;
+								let label = "Ausente";
+
+								if (option.value === "1") {
+									Icon = Check;
+									label = "Completo";
+									color = isSelected ? "success" : "ghost";
+								} else if (option.value === "0.5") {
+									Icon = Minus;
+									label = "Medio";
+									color = isSelected ? "warning" : "ghost";
+								} else {
+									Icon = X;
+									label = "Ausente";
+									color = isSelected ? "error" : "ghost";
+								}
 
 								return (
-									<button
+									<Button
 										key={option.value}
 										type="button"
-										onClick={() => field.handleChange(option.value)}
+										onPress={() => field.handleChange(option.value)}
+										color={color}
 										className={`
-											px-4 py-3 rounded-lg text-sm font-medium transition-all
-											border-2
-											${
-												isSelected
-													? "border-primary bg-primary text-white shadow-md scale-105"
-													: "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-											}
+											px-2 py-3 rounded-lg text-xs font-semibold transition-all
+											border-2 flex flex-col items-center gap-1
+											${isSelected ? "scale-105 shadow-md" : ""}
 										`}
 									>
-										{option.label}
-									</button>
+										<Icon size={18} strokeWidth={2.5} />
+										<span>{label}</span>
+									</Button>
 								);
 							})}
 						</div>
 					</div>
 				) : (
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1.5">
-							Unidades trabajadas
-						</label>
 						<input
+							id={`units-${employee.id}`}
 							type="number"
 							step="0.5"
 							min="0"

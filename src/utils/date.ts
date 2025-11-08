@@ -64,7 +64,15 @@ export const DAY_NAMES = [
 /**
  * Short day names in Spanish
  */
-export const DAY_NAMES_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+export const DAY_NAMES_SHORT = [
+	"Lun",
+	"Mar",
+	"Mié",
+	"Jue",
+	"Vie",
+	"Sáb",
+	"Dom",
+];
 
 /**
  * Format date range in Spanish

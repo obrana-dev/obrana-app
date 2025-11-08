@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Check, Minus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import { LoadingState } from "@/components/common/loading-state";
 import { AttendanceHeader } from "@/components/attendance/attendance-header";
 import { DaySelector } from "@/components/attendance/day-selector";
 import { EmployeeAttendanceCard } from "@/components/attendance/employee-attendance-card";
+import { LoadingState } from "@/components/common/loading-state";
+import { Button } from "@/components/ui/button";
 import { useAppForm } from "@/hooks/form";
 import {
 	useBatchSaveAttendance,
 	useWeekAttendance,
 	weekAttendanceQueryOptions,
 } from "@/queries/attendance";
+import { DAILY_ATTENDANCE_OPTIONS } from "@/utils/attendance";
 import { formatDate, getWeekDates, getWeekStart } from "@/utils/date";
 
 export const Route = createFileRoute("/_authed/attendance/")({
@@ -110,13 +113,14 @@ function AttendanceForm({
 	const initialValues = useMemo(() => {
 		const values: Record<string, string> = {};
 
-		// First, initialize all fields to empty string
+		// First, initialize all fields
 		// Use "|" as separator since it won't appear in UUIDs or dates
+		// Default to "0" (Ausente) for DAILY employees, empty string for others
 		employees.forEach((employee) => {
 			weekDates.forEach((date) => {
 				const dateStr = formatDate(date);
 				const key = `${employee.id}|${dateStr}`;
-				values[key] = "";
+				values[key] = employee.employmentType === "DAILY" ? "0" : "";
 			});
 		});
 
@@ -217,56 +221,107 @@ function AttendanceForm({
 					)}
 				</div>
 
-				{/* Desktop: Table View */}
-				<div className="hidden md:block flex-1 p-6 pb-0">
-					<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-						<div className="overflow-x-auto">
+				{/* Desktop: Enhanced Table View */}
+				<div className="hidden md:block flex-1 p-4 pb-0 overflow-auto">
+					<div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg h-full flex flex-col">
+						<div className="overflow-auto flex-1">
 							<table className="w-full">
-								<thead className="bg-gray-50 sticky top-0 z-10">
-									<tr>
-										<th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 sticky left-0 bg-gray-50 border-r border-gray-200 min-w-[150px]">
+								<thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+									<tr className="border-b-2 border-gray-200">
+										<th className="px-6 py-3 text-left text-sm font-bold text-gray-900 sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 border-r-2 border-gray-200 min-w-[200px] shadow-md">
 											Empleado
 										</th>
-										<th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 border-r border-gray-200">
+										<th className="px-4 py-3 text-center text-xs font-bold text-gray-700 border-r border-gray-200 min-w-[80px]">
 											Tipo
 										</th>
-										{weekDates.map((date, index) => (
-											<th
-												key={date.toISOString()}
-												className={`px-4 py-3 text-center text-xs font-semibold min-w-[120px] ${
-													date.getDay() === 0 || date.getDay() === 6 ? "bg-gray-100" : ""
-												}`}
-											>
-												<div className="font-semibold text-gray-900">
-													{["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][index]}
-												</div>
-												<div className="text-gray-500 font-normal text-xs mt-0.5">
-													{date.getDate()}/{date.getMonth() + 1}
-												</div>
-											</th>
-										))}
+										{weekDates.map((date, index) => {
+											const isWeekendDay =
+												date.getDay() === 0 || date.getDay() === 6;
+											const isToday =
+												date.getDate() === new Date().getDate() &&
+												date.getMonth() === new Date().getMonth() &&
+												date.getFullYear() === new Date().getFullYear();
+
+											return (
+												<th
+													key={date.toISOString()}
+													className={`px-3 py-3 text-center text-xs font-bold min-w-[140px] ${
+														isToday
+															? "bg-primary/10 border-x-2 border-primary/30"
+															: isWeekendDay
+																? "bg-gray-200/50"
+																: ""
+													}`}
+												>
+													<div
+														className={`font-bold ${isToday ? "text-primary" : "text-gray-900"}`}
+													>
+														{
+															["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][
+																index
+															]
+														}
+													</div>
+													<div
+														className={`font-normal text-xs mt-0.5 ${isToday ? "text-primary/80" : "text-gray-500"}`}
+													>
+														{date.getDate()}/{date.getMonth() + 1}
+													</div>
+													{isToday && (
+														<div className="text-xs font-semibold text-primary mt-0.5">
+															Hoy
+														</div>
+													)}
+												</th>
+											);
+										})}
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-gray-200">
-									{employees.map((employee) => (
-										<tr key={employee.id} className="hover:bg-gray-50 transition-colors">
-											<td className="px-4 py-3 text-sm font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200">
-												{employee.firstName} {employee.lastName}
+									{employees.map((employee, empIndex) => (
+										<tr
+											key={employee.id}
+											className={`hover:bg-gray-50/50 transition-all ${empIndex % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}
+										>
+											<td className="px-6 py-2.5 text-sm font-semibold text-gray-900 sticky left-0 bg-white border-r-2 border-gray-200 shadow-sm">
+												<div className="flex items-center gap-3">
+													<div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-xs font-bold">
+														{employee.firstName[0]}
+														{employee.lastName[0]}
+													</div>
+													<span>
+														{employee.firstName} {employee.lastName}
+													</span>
+												</div>
 											</td>
-											<td className="px-4 py-3 text-center text-xs text-gray-600 border-r border-gray-200">
-												{employee.employmentType === "HOURLY" && "Hora"}
-												{employee.employmentType === "DAILY" && "Día"}
-												{employee.employmentType === "SUB_CONTRACTOR" && "Sub"}
+											<td className="px-4 py-2.5 text-center border-r border-gray-200">
+												<span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">
+													{employee.employmentType === "HOURLY" && "Hora"}
+													{employee.employmentType === "DAILY" && "Día"}
+													{employee.employmentType === "SUB_CONTRACTOR" &&
+														"Sub"}
+												</span>
 											</td>
 											{weekDates.map((date) => {
 												const dateStr = formatDate(date);
 												const fieldName = `${employee.id}|${dateStr}`;
-												const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
+												const isWeekendDay =
+													date.getDay() === 0 || date.getDay() === 6;
+												const isToday =
+													date.getDate() === new Date().getDate() &&
+													date.getMonth() === new Date().getMonth() &&
+													date.getFullYear() === new Date().getFullYear();
 
 												return (
 													<td
 														key={date.toISOString()}
-														className={`px-2 py-2 ${isWeekendDay ? "bg-gray-50" : ""}`}
+														className={`px-2 py-2 ${
+															isToday
+																? "bg-primary/5 border-x-2 border-primary/20"
+																: isWeekendDay
+																	? "bg-gray-100/50"
+																	: ""
+														}`}
 													>
 														<form.Field name={fieldName}>
 															{(field) =>
@@ -277,32 +332,69 @@ function AttendanceForm({
 																		min="0"
 																		max="24"
 																		value={field.state.value || ""}
-																		onChange={(e) => field.handleChange(e.target.value)}
+																		onChange={(e) =>
+																			field.handleChange(e.target.value)
+																		}
 																		onBlur={field.handleBlur}
-																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+																		className="w-full text-center px-3 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:border-gray-400"
 																		placeholder="0"
 																	/>
 																) : employee.employmentType === "DAILY" ? (
-																	<select
-																		value={field.state.value || ""}
-																		onChange={(e) => field.handleChange(e.target.value)}
-																		onBlur={field.handleBlur}
-																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-																	>
-																		<option value="">-</option>
-																		<option value="1">Completo (1)</option>
-																		<option value="0.5">Medio (0.5)</option>
-																		<option value="0">Ausente (0)</option>
-																	</select>
+																	<div className="flex gap-1 justify-center">
+																		{DAILY_ATTENDANCE_OPTIONS.map((option) => {
+																			const isSelected =
+																				field.state.value === option.value;
+																			let color:
+																				| "success"
+																				| "warning"
+																				| "error"
+																				| "ghost" = "ghost";
+																			let Icon = X;
+
+																			if (option.value === "1") {
+																				Icon = Check;
+																				color = isSelected
+																					? "success"
+																					: "ghost";
+																			} else if (option.value === "0.5") {
+																				Icon = Minus;
+																				color = isSelected
+																					? "warning"
+																					: "ghost";
+																			} else {
+																				Icon = X;
+																				color = isSelected ? "error" : "ghost";
+																			}
+
+																			return (
+																				<Button
+																					key={option.value}
+																					type="button"
+																					onPress={() =>
+																						field.handleChange(option.value)
+																					}
+																					color={color}
+																					size="sm"
+																					className={`w-8 h-8 p-0 rounded-md transition-all ${
+																						isSelected ? "scale-110" : ""
+																					}`}
+																				>
+																					<Icon size={16} strokeWidth={2.5} />
+																				</Button>
+																			);
+																		})}
+																	</div>
 																) : (
 																	<input
 																		type="number"
 																		step="0.5"
 																		min="0"
 																		value={field.state.value || ""}
-																		onChange={(e) => field.handleChange(e.target.value)}
+																		onChange={(e) =>
+																			field.handleChange(e.target.value)
+																		}
 																		onBlur={field.handleBlur}
-																		className="w-full text-center px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+																		className="w-full text-center px-3 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:border-gray-400"
 																		placeholder="0"
 																	/>
 																)
@@ -326,17 +418,21 @@ function AttendanceForm({
 						<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
 							<form.AppForm>
 								<form.SubscribeButton
-									label={batchSave.isPending ? "Guardando..." : "Guardar Cambios"}
+									label={
+										batchSave.isPending ? "Guardando..." : "Guardar Cambios"
+									}
 									className="w-full"
 								/>
 							</form.AppForm>
 						</div>
 						{/* Desktop */}
-						<div className="hidden md:block px-6 pb-6 pt-4">
+						<div className="hidden md:block px-4 py-3 bg-white border-t border-gray-200 sticky bottom-0">
 							<div className="flex justify-end">
 								<form.AppForm>
 									<form.SubscribeButton
-										label={batchSave.isPending ? "Guardando..." : "Guardar Cambios"}
+										label={
+											batchSave.isPending ? "Guardando..." : "Guardar Cambios"
+										}
 									/>
 								</form.AppForm>
 							</div>
@@ -347,4 +443,3 @@ function AttendanceForm({
 		</div>
 	);
 }
-

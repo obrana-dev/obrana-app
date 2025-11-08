@@ -63,7 +63,10 @@ export function AttendanceTable({
 					</thead>
 					<tbody className="divide-y divide-gray-200">
 						{employees.map((employee) => (
-							<tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+							<tr
+								key={employee.id}
+								className="hover:bg-gray-50 transition-colors"
+							>
 								<td className="px-4 py-3 text-sm font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200">
 									{employee.firstName} {employee.lastName}
 								</td>

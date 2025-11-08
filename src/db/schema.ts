@@ -30,6 +30,11 @@ export const payFrequencyEnum = pgEnum("pay_frequency", [
 	"MONTHLY",
 ]);
 
+export const adjustmentTypeEnum = pgEnum("adjustment_type", [
+	"BONUS",
+	"DEDUCTION",
+]);
+
 // Better Auth tables
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -208,6 +213,21 @@ export const payrollHistory = pgTable("payroll_history", {
 	notes: text("notes"),
 });
 
+export const payrollAdjustments = pgTable("payroll_adjustments", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	payrollHistoryId: text("payroll_history_id")
+		.notNull()
+		.references(() => payrollHistory.id, { onDelete: "cascade" }),
+
+	type: adjustmentTypeEnum("type").notNull(),
+	description: text("description").notNull(),
+	amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
@@ -278,12 +298,26 @@ export const attendanceRecordsRelations = relations(
 	}),
 );
 
-export const payrollHistoryRelations = relations(payrollHistory, ({ one }) => ({
-	employee: one(employees, {
-		fields: [payrollHistory.employeeId],
-		references: [employees.id],
+export const payrollHistoryRelations = relations(
+	payrollHistory,
+	({ one, many }) => ({
+		employee: one(employees, {
+			fields: [payrollHistory.employeeId],
+			references: [employees.id],
+		}),
+		adjustments: many(payrollAdjustments),
 	}),
-}));
+);
+
+export const payrollAdjustmentsRelations = relations(
+	payrollAdjustments,
+	({ one }) => ({
+		payrollHistory: one(payrollHistory, {
+			fields: [payrollAdjustments.payrollHistoryId],
+			references: [payrollHistory.id],
+		}),
+	}),
+);
 
 // Type exports
 export type User = typeof user.$inferSelect;
@@ -297,3 +331,5 @@ export type EmployeeBankDetails = typeof employeeBankDetails.$inferSelect;
 export type EmployeePayRate = typeof employeePayRates.$inferSelect;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type PayrollHistory = typeof payrollHistory.$inferSelect;
+export type PayrollAdjustment = typeof payrollAdjustments.$inferSelect;
+export type PayrollAdjustmentInsert = typeof payrollAdjustments.$inferInsert;

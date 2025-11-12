@@ -108,7 +108,15 @@ Custom form system built on TanStack Form:
 - `src/hooks/form.ts` - `useAppForm` hook with predefined field/form components
 - `src/hooks/form-context.ts` - Form and field context definitions
 - `src/components/ui/form-components/` - Reusable form field components (TextField, SelectField, TextAreaField, SubscribeButton)
+- `src/components/forms/` - Complete form components that encapsulate both form logic (useAppForm) and UI
 - `src/utils/form.ts` - Form error formatting utilities
+
+**CRITICAL FORM PATTERN:**
+- **NEVER** pass `form` or `field` as props to other components
+- **NEVER** separate form logic (useAppForm) from form UI
+- **ALWAYS** keep form logic and UI together in the same component (in `src/components/forms/`)
+- Form components should handle their own submit buttons, cancel actions, and all form-related UI
+- Route components should only render the form component, not contain any form logic
 
 ### UI Components
 

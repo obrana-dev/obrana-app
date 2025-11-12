@@ -35,6 +35,15 @@ export const adjustmentTypeEnum = pgEnum("adjustment_type", [
 	"DEDUCTION",
 ]);
 
+// Enums for quotation management
+export const quotationStatusEnum = pgEnum("quotation_status", [
+	"DRAFT",
+	"REVIEW",
+	"APPROVED",
+	"REJECTED",
+	"CANCELED",
+]);
+
 // Better Auth tables
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -94,6 +103,86 @@ export const verification = pgTable("verification", {
 		.defaultNow()
 		.$onUpdate(() => new Date())
 		.notNull(),
+});
+
+// Client Management Tables
+
+export const clients = pgTable("clients", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	contractorId: text("contractor_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+
+	name: text("name").notNull(),
+	email: text("email"),
+	phone: text("phone"),
+	address: text("address"),
+
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull(),
+});
+
+// Quotation Management Tables
+
+export const quotations = pgTable("quotations", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	contractorId: text("contractor_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	clientId: text("client_id")
+		.notNull()
+		.references(() => clients.id, { onDelete: "restrict" }),
+
+	quotationNumber: text("quotation_number").notNull(),
+	status: quotationStatusEnum("status").notNull().default("DRAFT"),
+
+	issueDate: date("issue_date").notNull().defaultNow(),
+	validityDays: numeric("validity_days", { precision: 3, scale: 0 }),
+
+	subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull(),
+	total: numeric("total", { precision: 12, scale: 2 }).notNull(),
+
+	termsAndConditions: text("terms_and_conditions"),
+	internalNotes: text("internal_notes"),
+
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull(),
+});
+
+export const quotationItems = pgTable("quotation_items", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	quotationId: text("quotation_id")
+		.notNull()
+		.references(() => quotations.id, { onDelete: "cascade" }),
+
+	description: text("description").notNull(),
+	quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
+	unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
+	lineTotal: numeric("line_total", { precision: 12, scale: 2 }).notNull(),
+});
+
+export const quotationHistory = pgTable("quotation_history", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	quotationId: text("quotation_id")
+		.notNull()
+		.references(() => quotations.id, { onDelete: "cascade" }),
+
+	action: text("action").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Employee Management Tables
@@ -231,6 +320,8 @@ export const payrollAdjustments = pgTable("payroll_adjustments", {
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
+	clients: many(clients), // A user (contractor) has many clients
+	quotations: many(quotations), // A user (contractor) has many quotations
 	employees: many(employees), // A user (contractor) has many employees
 }));
 
@@ -247,6 +338,52 @@ export const accountRelations = relations(account, ({ one }) => ({
 		references: [user.id],
 	}),
 }));
+
+// Relations for Client Management
+export const clientsRelations = relations(clients, ({ one, many }) => ({
+	// A client belongs to one user (contractor)
+	contractor: one(user, {
+		fields: [clients.contractorId],
+		references: [user.id],
+	}),
+	// A client has many quotations
+	quotations: many(quotations),
+}));
+
+// Relations for Quotation Management
+export const quotationsRelations = relations(quotations, ({ one, many }) => ({
+	// A quotation belongs to one user (contractor)
+	contractor: one(user, {
+		fields: [quotations.contractorId],
+		references: [user.id],
+	}),
+	// A quotation belongs to one client
+	client: one(clients, {
+		fields: [quotations.clientId],
+		references: [clients.id],
+	}),
+	// A quotation has many items
+	items: many(quotationItems),
+	// A quotation has many history records
+	history: many(quotationHistory),
+}));
+
+export const quotationItemsRelations = relations(quotationItems, ({ one }) => ({
+	quotation: one(quotations, {
+		fields: [quotationItems.quotationId],
+		references: [quotations.id],
+	}),
+}));
+
+export const quotationHistoryRelations = relations(
+	quotationHistory,
+	({ one }) => ({
+		quotation: one(quotations, {
+			fields: [quotationHistory.quotationId],
+			references: [quotations.id],
+		}),
+	}),
+);
 
 // Relations for Employee Management
 export const employeesRelations = relations(employees, ({ one, many }) => ({
@@ -324,6 +461,15 @@ export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Account = typeof account.$inferSelect;
 export type Verification = typeof verification.$inferSelect;
+
+export type Client = typeof clients.$inferSelect;
+export type ClientInsert = typeof clients.$inferInsert;
+
+export type Quotation = typeof quotations.$inferSelect;
+export type QuotationInsert = typeof quotations.$inferInsert;
+export type QuotationItem = typeof quotationItems.$inferSelect;
+export type QuotationItemInsert = typeof quotationItems.$inferInsert;
+export type QuotationHistory = typeof quotationHistory.$inferSelect;
 
 export type Employee = typeof employees.$inferSelect;
 export type EmployeeInsert = typeof employees.$inferInsert;

@@ -1,4 +1,4 @@
-import { Briefcase, Clock, Users, type LucideIcon } from "lucide-react";
+import { Briefcase, Clock, type LucideIcon, Users } from "lucide-react";
 
 /**
  * Get initials from first and last name
@@ -55,7 +55,7 @@ export const EMPLOYMENT_TYPE_OPTIONS = [
 	{ label: "Por Hora", value: "HOURLY" },
 	{ label: "Por Día (Jornal)", value: "DAILY" },
 	{ label: "Subcontratista", value: "SUB_CONTRACTOR" },
-] as const;
+]
 
 /**
  * Pay frequency options for select fields
@@ -64,4 +64,4 @@ export const PAY_FREQUENCY_OPTIONS = [
 	{ label: "Semanal", value: "WEEKLY" },
 	{ label: "Quincenal", value: "BI_WEEKLY" },
 	{ label: "Mensual", value: "MONTHLY" },
-] as const;
+]

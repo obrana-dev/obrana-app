@@ -1,3 +1,4 @@
+import type React from "react";
 import {
 	TextField as AriaTextField,
 	Input,
@@ -25,9 +26,14 @@ const inputClasses = tv({
 			true: "border-error focus:ring-error focus:border-error",
 			false: "border-gray-300",
 		},
+		hasLeadingIcon: {
+			true: "pl-8",
+			false: "",
+		},
 	},
 	defaultVariants: {
 		hasError: false,
+		hasLeadingIcon: false,
 	},
 });
 
@@ -35,25 +41,43 @@ const labelClasses = tv({
 	base: "mb-1 font-medium text-lg",
 });
 
+const inputWrapperClasses = tv({
+	base: "relative w-full",
+});
+
+const leadingIconClasses = tv({
+	base: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none",
+});
+
 export function TextField({
 	label,
 	description,
 	error,
 	className,
+	leadingIcon,
 	...props
 }: TextFieldProps & {
 	label: string;
 	description?: string;
 	error?: string;
 	step?: string;
+	leadingIcon?: React.ReactNode;
 }) {
 	return (
 		<AriaTextField {...props} className={className || "w-full flex flex-col"}>
 			<Label className={labelClasses()}>{label}</Label>
-			<Input
-				className={inputClasses({ hasError: !!error })}
-				step={props.step}
-			/>
+			<div className={inputWrapperClasses()}>
+				{leadingIcon && (
+					<div className={leadingIconClasses()}>{leadingIcon}</div>
+				)}
+				<Input
+					className={inputClasses({
+						hasError: !!error,
+						hasLeadingIcon: !!leadingIcon,
+					})}
+					step={props.step}
+				/>
+			</div>
 			{description && (
 				<Text
 					slot="description"

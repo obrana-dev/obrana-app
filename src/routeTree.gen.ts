@@ -18,13 +18,19 @@ import { Route as PublicSign_upRouteImport } from './routes/_public/sign_up'
 import { Route as PublicSign_inRouteImport } from './routes/_public/sign_in'
 import { Route as PublicRecoveryRouteImport } from './routes/_public/recovery'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as AuthedQuotationsIndexRouteImport } from './routes/_authed/quotations/index'
 import { Route as AuthedPayrollIndexRouteImport } from './routes/_authed/payroll/index'
 import { Route as AuthedEmployeesIndexRouteImport } from './routes/_authed/employees/index'
+import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
 import { Route as AuthedAttendanceIndexRouteImport } from './routes/_authed/attendance/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthedQuotationsNewRouteImport } from './routes/_authed/quotations/new'
+import { Route as AuthedQuotationsQuotationIdRouteImport } from './routes/_authed/quotations/$quotationId'
 import { Route as AuthedPayrollHistoryRouteImport } from './routes/_authed/payroll/history'
 import { Route as AuthedEmployeesNewRouteImport } from './routes/_authed/employees/new'
 import { Route as AuthedEmployeesEmployeeIdRouteImport } from './routes/_authed/employees/$employeeId'
+import { Route as AuthedClientsNewRouteImport } from './routes/_authed/clients/new'
+import { Route as AuthedClientsClientIdRouteImport } from './routes/_authed/clients/$clientId'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -69,6 +75,11 @@ const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedQuotationsIndexRoute = AuthedQuotationsIndexRouteImport.update({
+  id: '/quotations/',
+  path: '/quotations/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedPayrollIndexRoute = AuthedPayrollIndexRouteImport.update({
   id: '/payroll/',
   path: '/payroll/',
@@ -77,6 +88,11 @@ const AuthedPayrollIndexRoute = AuthedPayrollIndexRouteImport.update({
 const AuthedEmployeesIndexRoute = AuthedEmployeesIndexRouteImport.update({
   id: '/employees/',
   path: '/employees/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedAttendanceIndexRoute = AuthedAttendanceIndexRouteImport.update({
@@ -89,6 +105,17 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedQuotationsNewRoute = AuthedQuotationsNewRouteImport.update({
+  id: '/quotations/new',
+  path: '/quotations/new',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedQuotationsQuotationIdRoute =
+  AuthedQuotationsQuotationIdRouteImport.update({
+    id: '/quotations/$quotationId',
+    path: '/quotations/$quotationId',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
 const AuthedPayrollHistoryRoute = AuthedPayrollHistoryRouteImport.update({
   id: '/payroll/history',
   path: '/payroll/history',
@@ -105,6 +132,16 @@ const AuthedEmployeesEmployeeIdRoute =
     path: '/employees/$employeeId',
     getParentRoute: () => AuthedRouteRoute,
   } as any)
+const AuthedClientsNewRoute = AuthedClientsNewRouteImport.update({
+  id: '/clients/new',
+  path: '/clients/new',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedClientsClientIdRoute = AuthedClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/settings': typeof AuthedSettingsRoute
@@ -114,13 +151,19 @@ export interface FileRoutesByFullPath {
   '/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
+  '/clients/$clientId': typeof AuthedClientsClientIdRoute
+  '/clients/new': typeof AuthedClientsNewRoute
   '/employees/$employeeId': typeof AuthedEmployeesEmployeeIdRoute
   '/employees/new': typeof AuthedEmployeesNewRoute
   '/payroll/history': typeof AuthedPayrollHistoryRoute
+  '/quotations/$quotationId': typeof AuthedQuotationsQuotationIdRoute
+  '/quotations/new': typeof AuthedQuotationsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/attendance': typeof AuthedAttendanceIndexRoute
+  '/clients': typeof AuthedClientsIndexRoute
   '/employees': typeof AuthedEmployeesIndexRoute
   '/payroll': typeof AuthedPayrollIndexRoute
+  '/quotations': typeof AuthedQuotationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/settings': typeof AuthedSettingsRoute
@@ -130,13 +173,19 @@ export interface FileRoutesByTo {
   '/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AuthedIndexRoute
+  '/clients/$clientId': typeof AuthedClientsClientIdRoute
+  '/clients/new': typeof AuthedClientsNewRoute
   '/employees/$employeeId': typeof AuthedEmployeesEmployeeIdRoute
   '/employees/new': typeof AuthedEmployeesNewRoute
   '/payroll/history': typeof AuthedPayrollHistoryRoute
+  '/quotations/$quotationId': typeof AuthedQuotationsQuotationIdRoute
+  '/quotations/new': typeof AuthedQuotationsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/attendance': typeof AuthedAttendanceIndexRoute
+  '/clients': typeof AuthedClientsIndexRoute
   '/employees': typeof AuthedEmployeesIndexRoute
   '/payroll': typeof AuthedPayrollIndexRoute
+  '/quotations': typeof AuthedQuotationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,13 +198,19 @@ export interface FileRoutesById {
   '/_public/verify_email': typeof PublicVerify_emailRoute
   '/api/health': typeof ApiHealthRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/clients/$clientId': typeof AuthedClientsClientIdRoute
+  '/_authed/clients/new': typeof AuthedClientsNewRoute
   '/_authed/employees/$employeeId': typeof AuthedEmployeesEmployeeIdRoute
   '/_authed/employees/new': typeof AuthedEmployeesNewRoute
   '/_authed/payroll/history': typeof AuthedPayrollHistoryRoute
+  '/_authed/quotations/$quotationId': typeof AuthedQuotationsQuotationIdRoute
+  '/_authed/quotations/new': typeof AuthedQuotationsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/attendance/': typeof AuthedAttendanceIndexRoute
+  '/_authed/clients/': typeof AuthedClientsIndexRoute
   '/_authed/employees/': typeof AuthedEmployeesIndexRoute
   '/_authed/payroll/': typeof AuthedPayrollIndexRoute
+  '/_authed/quotations/': typeof AuthedQuotationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,13 +222,19 @@ export interface FileRouteTypes {
     | '/verify_email'
     | '/api/health'
     | '/'
+    | '/clients/$clientId'
+    | '/clients/new'
     | '/employees/$employeeId'
     | '/employees/new'
     | '/payroll/history'
+    | '/quotations/$quotationId'
+    | '/quotations/new'
     | '/api/auth/$'
     | '/attendance'
+    | '/clients'
     | '/employees'
     | '/payroll'
+    | '/quotations'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings'
@@ -183,13 +244,19 @@ export interface FileRouteTypes {
     | '/verify_email'
     | '/api/health'
     | '/'
+    | '/clients/$clientId'
+    | '/clients/new'
     | '/employees/$employeeId'
     | '/employees/new'
     | '/payroll/history'
+    | '/quotations/$quotationId'
+    | '/quotations/new'
     | '/api/auth/$'
     | '/attendance'
+    | '/clients'
     | '/employees'
     | '/payroll'
+    | '/quotations'
   id:
     | '__root__'
     | '/_authed'
@@ -201,13 +268,19 @@ export interface FileRouteTypes {
     | '/_public/verify_email'
     | '/api/health'
     | '/_authed/'
+    | '/_authed/clients/$clientId'
+    | '/_authed/clients/new'
     | '/_authed/employees/$employeeId'
     | '/_authed/employees/new'
     | '/_authed/payroll/history'
+    | '/_authed/quotations/$quotationId'
+    | '/_authed/quotations/new'
     | '/api/auth/$'
     | '/_authed/attendance/'
+    | '/_authed/clients/'
     | '/_authed/employees/'
     | '/_authed/payroll/'
+    | '/_authed/quotations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -282,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/quotations/': {
+      id: '/_authed/quotations/'
+      path: '/quotations'
+      fullPath: '/quotations'
+      preLoaderRoute: typeof AuthedQuotationsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/payroll/': {
       id: '/_authed/payroll/'
       path: '/payroll'
@@ -294,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/employees'
       fullPath: '/employees'
       preLoaderRoute: typeof AuthedEmployeesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/clients/': {
+      id: '/_authed/clients/'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AuthedClientsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/attendance/': {
@@ -309,6 +396,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/quotations/new': {
+      id: '/_authed/quotations/new'
+      path: '/quotations/new'
+      fullPath: '/quotations/new'
+      preLoaderRoute: typeof AuthedQuotationsNewRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/quotations/$quotationId': {
+      id: '/_authed/quotations/$quotationId'
+      path: '/quotations/$quotationId'
+      fullPath: '/quotations/$quotationId'
+      preLoaderRoute: typeof AuthedQuotationsQuotationIdRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/payroll/history': {
       id: '/_authed/payroll/history'
@@ -331,29 +432,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedEmployeesEmployeeIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/clients/new': {
+      id: '/_authed/clients/new'
+      path: '/clients/new'
+      fullPath: '/clients/new'
+      preLoaderRoute: typeof AuthedClientsNewRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/clients/$clientId': {
+      id: '/_authed/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AuthedClientsClientIdRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
   AuthedSettingsRoute: typeof AuthedSettingsRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedClientsClientIdRoute: typeof AuthedClientsClientIdRoute
+  AuthedClientsNewRoute: typeof AuthedClientsNewRoute
   AuthedEmployeesEmployeeIdRoute: typeof AuthedEmployeesEmployeeIdRoute
   AuthedEmployeesNewRoute: typeof AuthedEmployeesNewRoute
   AuthedPayrollHistoryRoute: typeof AuthedPayrollHistoryRoute
+  AuthedQuotationsQuotationIdRoute: typeof AuthedQuotationsQuotationIdRoute
+  AuthedQuotationsNewRoute: typeof AuthedQuotationsNewRoute
   AuthedAttendanceIndexRoute: typeof AuthedAttendanceIndexRoute
+  AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
   AuthedEmployeesIndexRoute: typeof AuthedEmployeesIndexRoute
   AuthedPayrollIndexRoute: typeof AuthedPayrollIndexRoute
+  AuthedQuotationsIndexRoute: typeof AuthedQuotationsIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedSettingsRoute: AuthedSettingsRoute,
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedClientsClientIdRoute: AuthedClientsClientIdRoute,
+  AuthedClientsNewRoute: AuthedClientsNewRoute,
   AuthedEmployeesEmployeeIdRoute: AuthedEmployeesEmployeeIdRoute,
   AuthedEmployeesNewRoute: AuthedEmployeesNewRoute,
   AuthedPayrollHistoryRoute: AuthedPayrollHistoryRoute,
+  AuthedQuotationsQuotationIdRoute: AuthedQuotationsQuotationIdRoute,
+  AuthedQuotationsNewRoute: AuthedQuotationsNewRoute,
   AuthedAttendanceIndexRoute: AuthedAttendanceIndexRoute,
+  AuthedClientsIndexRoute: AuthedClientsIndexRoute,
   AuthedEmployeesIndexRoute: AuthedEmployeesIndexRoute,
   AuthedPayrollIndexRoute: AuthedPayrollIndexRoute,
+  AuthedQuotationsIndexRoute: AuthedQuotationsIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(

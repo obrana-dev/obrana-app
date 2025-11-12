@@ -29,6 +29,27 @@
       "when": 1762568026089,
       "tag": "0003_flat_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1762902743750,
+      "tag": "0004_faulty_moondragon",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762905368167,
+      "tag": "0005_stiff_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762955584987,
+      "tag": "0006_harsh_romulus",
+      "breakpoints": true
     }
   ]
 }

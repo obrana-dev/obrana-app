@@ -7,9 +7,9 @@ const menuItems = [
 	{ label: "Empleados", href: "/employees" },
 	{ label: "Asistencia", href: "/attendance" },
 	{ label: "Pagar Nómina", href: "/payroll" },
-	{ label: "Clientes", href: "/clientes" },
+	{ label: "Clientes", href: "/clients" },
+	{ label: "Presupuestos", href: "/quotations" },
 	{ label: "Trabajos", href: "/trabajos" },
-	{ label: "Presupuestos", href: "/presupuestos" },
 	{ label: "Proveedores", href: "/proveedores" },
 ];
 

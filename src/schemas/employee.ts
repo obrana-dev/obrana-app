@@ -8,7 +8,7 @@ export const employeeFormSchema = z.object({
 	lastName: z.string().min(1, "El apellido es requerido"),
 	phone: z.string().min(1, "El teléfono es requerido"),
 	email: z.union([
-		z.string().email({ message: "Email inválido" }),
+		z.email({ message: "Email inválido" }),
 		z.literal(""),
 	]),
 	address: z.string(),

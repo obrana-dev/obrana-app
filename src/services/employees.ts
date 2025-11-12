@@ -67,7 +67,7 @@ const createEmployeeSchema = z.object({
 	address: z.string().optional().nullable(),
 	nationalId: z.string().optional().nullable(),
 	jobCategory: z.string().optional().nullable(),
-	employmentType: z.enum(["HOURLY", "DAILY", "SALARIED", "SUB_CONTRACTOR"]),
+	employmentType: z.enum(["HOURLY", "DAILY", "SUB_CONTRACTOR"]),
 	payFrequency: z.enum(["WEEKLY", "BI_WEEKLY", "MONTHLY"]),
 	hireDate: z.string().optional().nullable(),
 	insuranceDetails: z.string().optional().nullable(),

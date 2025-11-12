@@ -6,8 +6,8 @@ import {
 	attendanceRecords,
 	employeePayRates,
 	employees,
-	payrollHistory,
 	payrollAdjustments,
+	payrollHistory,
 } from "@/db/schema";
 import authMiddleware from "@/middlewares/auth";
 
@@ -21,81 +21,54 @@ export const getPayrollSummaryFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator(getPayrollSummarySchema)
 	.handler(async ({ data, context }) => {
-		// Get all active employees for the contractor
-		const contractorEmployees = await db
-			.select()
-			.from(employees)
-			.where(
-				and(
-					eq(employees.contractorId, context.session.user.id),
-					eq(employees.isActive, true),
-				),
+		// Use relational query to fetch all data efficiently (fixes N+1 query problem)
+		const contractorEmployees = await db.query.employees.findMany({
+			where: and(
+				eq(employees.contractorId, context.session.user.id),
+				eq(employees.isActive, true),
+			),
+			with: {
+				payRates: {
+					orderBy: desc(employeePayRates.effectiveDate),
+					limit: 1,
+				},
+				attendanceRecords: {
+					where: between(
+						attendanceRecords.workDate,
+						data.startDate,
+						data.endDate,
+					),
+				},
+			},
+		});
+
+		// Calculate payroll for each employee (data already loaded)
+		const payrollSummary = contractorEmployees.map((employee) => {
+			// Get the most recent pay rate
+			const currentRate = employee.payRates[0];
+
+			// Calculate total units worked
+			const totalUnits = employee.attendanceRecords.reduce(
+				(sum, record) => sum + Number.parseFloat(record.unitsWorked),
+				0,
 			);
 
-		// For each employee, calculate gross pay based on attendance
-		const payrollSummary = await Promise.all(
-			contractorEmployees.map(async (employee) => {
-				// Get attendance records for this period
-				const attendance = await db
-					.select()
-					.from(attendanceRecords)
-					.where(
-						and(
-							eq(attendanceRecords.employeeId, employee.id),
-							between(attendanceRecords.workDate, data.startDate, data.endDate),
-						),
-					);
+			// Calculate gross pay based on employment type
+			const rate = Number.parseFloat(currentRate?.rate || "0");
+			const grossPay = totalUnits * rate;
 
-				// Get current pay rate
-				const [currentRate] = await db
-					.select()
-					.from(employeePayRates)
-					.where(eq(employeePayRates.employeeId, employee.id))
-					.orderBy(employeePayRates.effectiveDate)
-					.limit(1);
-
-				// Calculate gross pay based on employment type
-				let grossPay = 0;
-
-				if (employee.employmentType === "HOURLY") {
-					// Sum hours worked * hourly rate
-					const totalHours = attendance.reduce(
-						(sum, record) => sum + Number.parseFloat(record.unitsWorked),
-						0,
-					);
-					grossPay = totalHours * Number.parseFloat(currentRate?.rate || "0");
-				} else if (employee.employmentType === "DAILY") {
-					// Sum days worked * daily rate
-					const totalDays = attendance.reduce(
-						(sum, record) => sum + Number.parseFloat(record.unitsWorked),
-						0,
-					);
-					grossPay = totalDays * Number.parseFloat(currentRate?.rate || "0");
-				} else if (employee.employmentType === "SUB_CONTRACTOR") {
-					// Sum units worked * rate
-					const totalUnits = attendance.reduce(
-						(sum, record) => sum + Number.parseFloat(record.unitsWorked),
-						0,
-					);
-					grossPay = totalUnits * Number.parseFloat(currentRate?.rate || "0");
-				}
-
-				return {
-					employeeId: employee.id,
-					employeeName: `${employee.firstName} ${employee.lastName}`,
-					employmentType: employee.employmentType,
-					unitsWorked: attendance.reduce(
-						(sum, record) => sum + Number.parseFloat(record.unitsWorked),
-						0,
-					),
-					rate: currentRate?.rate || "0",
-					grossPay: grossPay.toFixed(2),
-					bonuses: "0",
-					deductions: "0",
-					netPay: grossPay.toFixed(2),
-				};
-			}),
-		);
+			return {
+				employeeId: employee.id,
+				employeeName: `${employee.firstName} ${employee.lastName}`,
+				employmentType: employee.employmentType,
+				unitsWorked: totalUnits,
+				rate: currentRate?.rate || "0",
+				grossPay: grossPay.toFixed(2),
+				bonuses: "0",
+				deductions: "0",
+				netPay: grossPay.toFixed(2),
+			};
+		});
 
 		return payrollSummary;
 	});
@@ -128,7 +101,6 @@ export const savePayrollFn = createServerFn({ method: "POST" })
 	.inputValidator(savePayrollSchema)
 	.handler(async ({ data, context }) => {
 		// Verify all employees belong to contractor
-		const employeeIds = data.records.map((r) => r.employeeId);
 		const contractorEmployees = await db
 			.select()
 			.from(employees)

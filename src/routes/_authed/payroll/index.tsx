@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { History } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { LoadingState } from "@/components/common/loading-state";
 import {
 	EmployeePayrollCard,
@@ -156,17 +156,29 @@ function RunPayroll() {
 	};
 
 	// Calculate net pay for an employee including adjustments
-	const calculateEmployeeNetPay = (employeeId: string, grossPay: string) => {
-		const adjustments = employeeAdjustments[employeeId] || [];
-		const gross = Number.parseFloat(grossPay);
-		const bonuses = adjustments
-			.filter((adj) => adj.type === "BONUS")
-			.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
-		const deductions = adjustments
-			.filter((adj) => adj.type === "DEDUCTION")
-			.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
-		return gross + bonuses - deductions;
-	};
+	const calculateEmployeeNetPay = useCallback(
+		(employeeId: string, grossPay: string) => {
+			const adjustments = employeeAdjustments[employeeId] || [];
+			const gross = Number.parseFloat(grossPay);
+
+			// Validate parsed number to prevent NaN calculations
+			if (Number.isNaN(gross)) {
+				console.warn(
+					`Invalid grossPay value: ${grossPay} for employee ${employeeId}`,
+				);
+				return 0;
+			}
+
+			const bonuses = adjustments
+				.filter((adj) => adj.type === "BONUS")
+				.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
+			const deductions = adjustments
+				.filter((adj) => adj.type === "DEDUCTION")
+				.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
+			return gross + bonuses - deductions;
+		},
+		[employeeAdjustments],
+	);
 
 	// Save payroll handler
 	const handleSavePayroll = () => {
@@ -198,17 +210,22 @@ function RunPayroll() {
 		});
 	};
 
-	const totalGross =
-		payrollData?.reduce(
+	// Memoize totals to prevent unnecessary recalculations
+	const { totalGross, totalNet } = useMemo(() => {
+		if (!payrollData) return { totalGross: 0, totalNet: 0 };
+
+		const gross = payrollData.reduce(
 			(sum, emp) => sum + Number.parseFloat(emp.grossPay),
 			0,
-		) || 0;
+		);
 
-	const totalNet =
-		payrollData?.reduce(
+		const net = payrollData.reduce(
 			(sum, emp) => sum + calculateEmployeeNetPay(emp.employeeId, emp.grossPay),
 			0,
-		) || 0;
+		);
+
+		return { totalGross: gross, totalNet: net };
+	}, [payrollData, calculateEmployeeNetPay]);
 
 	if (isLoading) {
 		return <LoadingState message="Cargando nómina..." />;

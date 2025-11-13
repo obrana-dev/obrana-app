@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Building2, Calendar, FileText } from "lucide-react";
+import { memo } from "react";
 import type { Quotation } from "@/db/schema";
 import { formatCurrency, getQuotationStatusInfo } from "@/utils/quotation";
 
@@ -9,7 +10,7 @@ interface QuotationCardProps {
 	};
 }
 
-export function QuotationCard({ quotation }: QuotationCardProps) {
+export const QuotationCard = memo(function QuotationCard({ quotation }: QuotationCardProps) {
 	const statusInfo = getQuotationStatusInfo(quotation.status);
 
 	return (
@@ -62,4 +63,4 @@ export function QuotationCard({ quotation }: QuotationCardProps) {
 			</div>
 		</Link>
 	);
-}
+});

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { employeeBankDetails, employeePayRates, employees } from "@/db/schema";
 import authMiddleware from "@/middlewares/auth";
+import { createEmployeeSchema, updateEmployeeSchema } from "@/schemas/employee";
 
 // List all employees for the current contractor
 export const listEmployeesFn = createServerFn({ method: "GET" })
@@ -59,24 +60,6 @@ export const getEmployeeFn = createServerFn({ method: "GET" })
 	});
 
 // Create a new employee
-const createEmployeeSchema = z.object({
-	firstName: z.string().min(1, "El nombre es requerido"),
-	lastName: z.string().min(1, "El apellido es requerido"),
-	email: z.string().email("Email inválido").optional().nullable(),
-	phone: z.string().min(1, "El teléfono es requerido"),
-	address: z.string().optional().nullable(),
-	nationalId: z.string().optional().nullable(),
-	jobCategory: z.string().optional().nullable(),
-	employmentType: z.enum(["HOURLY", "DAILY", "SUB_CONTRACTOR"]),
-	payFrequency: z.enum(["WEEKLY", "BI_WEEKLY", "MONTHLY"]),
-	hireDate: z.string().optional().nullable(),
-	insuranceDetails: z.string().optional().nullable(),
-	rate: z.string().min(1, "La tarifa es requerida"),
-	bankName: z.string().optional(),
-	accountAlias: z.string().optional(),
-	cbuCvu: z.string().optional(),
-});
-
 export const createEmployeeFn = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(createEmployeeSchema)
@@ -112,10 +95,6 @@ export const createEmployeeFn = createServerFn({ method: "POST" })
 	});
 
 // Update an employee
-const updateEmployeeSchema = createEmployeeSchema
-	.partial()
-	.extend({ id: z.string() });
-
 export const updateEmployeeFn = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(updateEmployeeSchema)

@@ -9,6 +9,29 @@ export function getWeekStart(date: Date): Date {
 }
 
 /**
+ * Get the end of the week (Sunday) for a given week start date
+ */
+export function getWeekEnd(weekStart: Date): Date {
+	const d = new Date(weekStart);
+	d.setDate(d.getDate() + 6);
+	return d;
+}
+
+/**
+ * Get the start of the month for a given date
+ */
+export function getMonthStart(date: Date): Date {
+	return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+/**
+ * Get the end of the month for a given date
+ */
+export function getMonthEnd(date: Date): Date {
+	return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+/**
  * Format date as YYYY-MM-DD
  */
 export function formatDate(date: Date): string {

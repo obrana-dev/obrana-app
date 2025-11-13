@@ -1,50 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { History } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { History, Plus, Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import { EmptyState } from "@/components/common/empty-state";
 import { LoadingState } from "@/components/common/loading-state";
-import {
-	EmployeePayrollCard,
-	type PayrollAdjustment,
-} from "@/components/payroll/employee-payroll-card";
+import { EmployeePayrollCard } from "@/components/payroll/employee-payroll-card";
 import { PayrollDesktopTable } from "@/components/payroll/payroll-desktop-table";
 import { PayrollPeriodSelector } from "@/components/payroll/payroll-period-selector";
 import { PayrollSummaryCard } from "@/components/payroll/payroll-summary-card";
 import { Button } from "@/components/ui/button";
+import { usePayrollAdjustments } from "@/hooks/usePayrollAdjustments";
 import {
 	payrollSummaryQueryOptions,
 	usePayrollSummary,
 	useSavePayroll,
 } from "@/queries/payroll";
-
-// Helper to format date as YYYY-MM-DD
-function formatDate(date: Date) {
-	return date.toISOString().split("T")[0];
-}
-
-// Get the start of the week (Monday)
-function getWeekStart(date: Date) {
-	const d = new Date(date);
-	const day = d.getDay();
-	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-	return new Date(d.setDate(diff));
-}
-
-// Get the end of the week (Sunday)
-function getWeekEnd(weekStart: Date) {
-	const d = new Date(weekStart);
-	d.setDate(d.getDate() + 6);
-	return d;
-}
-
-// Get the start of the month
-function getMonthStart(date: Date) {
-	return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-// Get the end of the month
-function getMonthEnd(date: Date) {
-	return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-}
+import {
+	formatDate,
+	getMonthEnd,
+	getMonthStart,
+	getWeekEnd,
+	getWeekStart,
+} from "@/utils/date";
 
 export const Route = createFileRoute("/_authed/payroll/")({
 	component: RunPayroll,
@@ -76,13 +52,16 @@ function RunPayroll() {
 	);
 	const savePayroll = useSavePayroll();
 
-	// State to manage adjustments for each employee
-	const [employeeAdjustments, setEmployeeAdjustments] = useState<
-		Record<string, PayrollAdjustment[]>
-	>({});
-
-	// State to manage expanded rows on desktop
-	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+	// Payroll adjustments hook
+	const {
+		employeeAdjustments,
+		expandedRows,
+		addAdjustment,
+		removeAdjustment,
+		updateAdjustment,
+		toggleRowExpansion,
+		calculateEmployeeNetPay,
+	} = usePayrollAdjustments();
 
 	// Quick date selection handlers
 	const setThisWeek = () => {
@@ -98,87 +77,6 @@ function RunPayroll() {
 		setStartDate(formatDate(monthStart));
 		setEndDate(formatDate(monthEnd));
 	};
-
-	// Toggle row expansion for desktop table
-	const toggleRowExpansion = (employeeId: string) => {
-		setExpandedRows((prev) => {
-			const newSet = new Set(prev);
-			if (newSet.has(employeeId)) {
-				newSet.delete(employeeId);
-			} else {
-				newSet.add(employeeId);
-			}
-			return newSet;
-		});
-	};
-
-	// Add adjustment to an employee
-	const handleAddAdjustment = (
-		employeeId: string,
-		type: "BONUS" | "DEDUCTION",
-	) => {
-		const newAdjustment: PayrollAdjustment = {
-			id: crypto.randomUUID(),
-			type,
-			description: "",
-			amount: "",
-		};
-
-		setEmployeeAdjustments((prev) => ({
-			...prev,
-			[employeeId]: [...(prev[employeeId] || []), newAdjustment],
-		}));
-	};
-
-	// Remove adjustment from an employee
-	const handleRemoveAdjustment = (employeeId: string, adjustmentId: string) => {
-		setEmployeeAdjustments((prev) => ({
-			...prev,
-			[employeeId]: (prev[employeeId] || []).filter(
-				(adj) => adj.id !== adjustmentId,
-			),
-		}));
-	};
-
-	// Update adjustment field
-	const handleUpdateAdjustment = (
-		employeeId: string,
-		adjustmentId: string,
-		field: "description" | "amount",
-		value: string,
-	) => {
-		setEmployeeAdjustments((prev) => ({
-			...prev,
-			[employeeId]: (prev[employeeId] || []).map((adj) =>
-				adj.id === adjustmentId ? { ...adj, [field]: value } : adj,
-			),
-		}));
-	};
-
-	// Calculate net pay for an employee including adjustments
-	const calculateEmployeeNetPay = useCallback(
-		(employeeId: string, grossPay: string) => {
-			const adjustments = employeeAdjustments[employeeId] || [];
-			const gross = Number.parseFloat(grossPay);
-
-			// Validate parsed number to prevent NaN calculations
-			if (Number.isNaN(gross)) {
-				console.warn(
-					`Invalid grossPay value: ${grossPay} for employee ${employeeId}`,
-				);
-				return 0;
-			}
-
-			const bonuses = adjustments
-				.filter((adj) => adj.type === "BONUS")
-				.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
-			const deductions = adjustments
-				.filter((adj) => adj.type === "DEDUCTION")
-				.reduce((sum, adj) => sum + Number.parseFloat(adj.amount || "0"), 0);
-			return gross + bonuses - deductions;
-		},
-		[employeeAdjustments],
-	);
 
 	// Save payroll handler
 	const handleSavePayroll = () => {
@@ -282,20 +180,30 @@ function RunPayroll() {
 								}}
 								adjustments={employeeAdjustments[employee.employeeId] || []}
 								onAddAdjustment={(type) =>
-									handleAddAdjustment(employee.employeeId, type)
+									addAdjustment(employee.employeeId, type)
 								}
 								onRemoveAdjustment={(id) =>
-									handleRemoveAdjustment(employee.employeeId, id)
+									removeAdjustment(employee.employeeId, id)
 								}
 								onUpdateAdjustment={(id, field, value) =>
-									handleUpdateAdjustment(employee.employeeId, id, field, value)
+									updateAdjustment(employee.employeeId, id, field, value)
 								}
 							/>
 						))
 					) : (
-						<div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-							No hay empleados activos con asistencia en este período
-						</div>
+						<EmptyState
+							icon={Users}
+							title="No hay empleados activos con asistencia"
+							description="No hay registros de asistencia para el período seleccionado"
+							action={
+								<Link to="/employees/new">
+									<Button>
+										<Plus className="w-4 h-4 mr-2" />
+										Agregar Empleado
+									</Button>
+								</Link>
+							}
+						/>
 					)}
 				</div>
 
@@ -309,9 +217,9 @@ function RunPayroll() {
 						totalNet={totalNet}
 						calculateEmployeeNetPay={calculateEmployeeNetPay}
 						onToggleExpansion={toggleRowExpansion}
-						onAddAdjustment={handleAddAdjustment}
-						onUpdateAdjustment={handleUpdateAdjustment}
-						onRemoveAdjustment={handleRemoveAdjustment}
+						onAddAdjustment={addAdjustment}
+						onUpdateAdjustment={updateAdjustment}
+						onRemoveAdjustment={removeAdjustment}
 					/>
 				</div>
 			</div>

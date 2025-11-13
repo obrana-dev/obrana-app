@@ -7,8 +7,11 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
+import { ErrorFallback } from "@/components/common/error-boundary";
+import { NotFound } from "@/components/common/not-found";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import "../styles.css";
+import { getSessionFn } from "@/services/auth";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -29,6 +32,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 	}),
+
+	beforeLoad: async () => {
+		const session = await getSessionFn();
+
+		return { session };
+	},
+	errorComponent: ({ error }) => <ErrorFallback error={error} />,
+
+	notFoundComponent: NotFound,
 
 	shellComponent: RootDocument,
 });

@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, DollarSign } from "lucide-react";
 import { useState } from "react";
+import { EmptyState } from "@/components/common/empty-state";
 import { PayrollRunCard } from "@/components/payroll/payroll-run-card";
 import { PayrollRunDetail } from "@/components/payroll/payroll-run-detail";
+import { Button } from "@/components/ui/button";
 import { payrollRunsQueryOptions, usePayrollRuns } from "@/queries/payroll";
 
 export const Route = createFileRoute("/_authed/payroll/history")({
@@ -41,9 +43,16 @@ function PayrollHistory() {
 						Cargando historial...
 					</div>
 				) : !payrollRuns || payrollRuns.length === 0 ? (
-					<div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-						No hay historial de nóminas
-					</div>
+					<EmptyState
+						icon={DollarSign}
+						title="No hay historial de nóminas"
+						description="Los pagos de nómina que proceses aparecerán aquí"
+						action={
+							<Link to="/payroll">
+								<Button>Ir a Pagar Nómina</Button>
+							</Link>
+						}
+					/>
 				) : (
 					<div className="space-y-3">
 						{payrollRuns.map((run) => {

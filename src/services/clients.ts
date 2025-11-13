@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { clients } from "@/db/schema";
 import authMiddleware from "@/middlewares/auth";
+import { createClientSchema, updateClientSchema } from "@/schemas/client";
 
 // List all clients for the current contractor with optional search
 export const listClientsFn = createServerFn({ method: "GET" })
@@ -54,13 +55,6 @@ export const getClientFn = createServerFn({ method: "GET" })
 	});
 
 // Create a new client
-const createClientSchema = z.object({
-	name: z.string().min(1, "El nombre es requerido"),
-	email: z.string().email("Email inválido").optional().nullable(),
-	phone: z.string().optional().nullable(),
-	address: z.string().optional().nullable(),
-});
-
 export const createClientFn = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(createClientSchema)
@@ -77,10 +71,6 @@ export const createClientFn = createServerFn({ method: "POST" })
 	});
 
 // Update a client
-const updateClientSchema = createClientSchema.partial().extend({
-	id: z.string(),
-});
-
 export const updateClientFn = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(updateClientSchema)

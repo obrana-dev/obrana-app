@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { ClientCard } from "@/components/clients/client-card";
 import { ClientListHeader } from "@/components/clients/client-list-header";
+import { EmptyState } from "@/components/common/empty-state";
+import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/text-field";
 import { useClients } from "@/queries/clients";
 
@@ -61,21 +63,27 @@ function ClientsPage() {
 
 				{/* Empty State */}
 				{!isLoading && clients && clients.length === 0 && (
-					<div className="text-center py-12">
-						<div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4">
-							<Search className="w-8 h-8 text-gray-400" />
-						</div>
-						<h3 className="text-lg font-medium text-gray-900 mb-2">
-							{searchTerm
-								? "No se encontraron clientes"
-								: "No hay clientes aún"}
-						</h3>
-						<p className="text-gray-600">
-							{searchTerm
+					<EmptyState
+						icon={searchTerm ? Search : Users}
+						title={
+							searchTerm ? "No se encontraron clientes" : "No hay clientes aún"
+						}
+						description={
+							searchTerm
 								? "Intenta con otros términos de búsqueda"
-								: "Comienza agregando tu primer cliente"}
-						</p>
-					</div>
+								: "Comienza agregando tu primer cliente"
+						}
+						action={
+							!searchTerm ? (
+								<Link to="/clients/new">
+									<Button>
+										<Plus className="w-4 h-4 mr-2" />
+										Agregar Cliente
+									</Button>
+								</Link>
+							) : undefined
+						}
+					/>
 				)}
 
 				{/* Clients Grid */}

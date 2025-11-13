@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Mail, Phone } from "lucide-react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { getEmploymentTypeInfo, getInitials } from "@/utils/employee";
 
@@ -20,7 +21,7 @@ interface EmployeeCardProps {
 	isPending?: boolean;
 }
 
-export function EmployeeCard({
+export const EmployeeCard = memo(function EmployeeCard({
 	employee,
 	onToggleStatus,
 	isPending,
@@ -105,4 +106,4 @@ export function EmployeeCard({
 			</div>
 		</div>
 	);
-}
+});

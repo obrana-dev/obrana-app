@@ -2,16 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-
-const menuItems = [
-	{ label: "Empleados", href: "/employees" },
-	{ label: "Asistencia", href: "/attendance" },
-	{ label: "Pagar Nómina", href: "/payroll" },
-	{ label: "Clientes", href: "/clients" },
-	{ label: "Presupuestos", href: "/quotations" },
-	{ label: "Trabajos", href: "/trabajos" },
-	{ label: "Proveedores", href: "/proveedores" },
-];
+import { navigationItems } from "@/config/navigation";
 
 interface SidebarProps {
 	isOpen: boolean;
@@ -81,7 +72,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 					{/* Navigation items */}
 					<nav className="flex-1 px-3 py-4">
 						<ul className="space-y-1">
-							{menuItems.map((item) => {
+							{navigationItems.map((item) => {
 								const isActive = currentPath === item.href;
 								return (
 									<li key={item.href}>

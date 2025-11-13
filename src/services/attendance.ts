@@ -20,6 +20,13 @@ export const getWeekAttendanceFn = createServerFn({ method: "GET" })
 				eq(employees.contractorId, context.session.user.id),
 				eq(employees.isActive, true),
 			),
+			// Only select needed employee fields
+			columns: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				employmentType: true,
+			},
 			with: {
 				attendanceRecords: {
 					where: between(
@@ -27,7 +34,13 @@ export const getWeekAttendanceFn = createServerFn({ method: "GET" })
 						data.startDate,
 						data.endDate,
 					),
-					// Optional: order them by date
+					// Only select needed attendance fields
+					columns: {
+						id: true,
+						workDate: true,
+						unitsWorked: true,
+						status: true,
+					},
 					orderBy: (records, { asc }) => [asc(records.workDate)],
 				},
 			},

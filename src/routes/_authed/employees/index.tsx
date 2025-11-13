@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingState } from "@/components/common/loading-state";
 import { EmployeeCard } from "@/components/employees/employee-card";
@@ -43,9 +43,12 @@ function EmployeeList() {
 			});
 	}, [employees, showInactive, searchQuery]);
 
-	const handleToggleStatus = (id: string, isActive: boolean) => {
-		toggleStatus.mutate({ data: { id, isActive } });
-	};
+	const handleToggleStatus = useCallback(
+		(id: string, isActive: boolean) => {
+			toggleStatus.mutate({ data: { id, isActive } });
+		},
+		[toggleStatus],
+	);
 
 	if (isLoading) {
 		return <LoadingState message="Cargando empleados..." />;

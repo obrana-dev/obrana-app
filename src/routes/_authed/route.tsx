@@ -1,17 +1,18 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
+import { RouteErrorBoundary } from "@/components/common/error-boundary";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
-import { getSessionFn } from "@/services/auth";
 
 export const Route = createFileRoute("/_authed")({
-	beforeLoad: async () => {
-		const session = await getSessionFn();
-
-		if (!session?.user) {
+	beforeLoad: async ({ context }) => {
+		if (!context.session?.user) {
 			throw redirect({ to: "/sign_in" });
 		}
 	},
+	errorComponent: ({ error, reset }) => (
+		<RouteErrorBoundary error={error} reset={reset} />
+	),
 	component: RouteComponent,
 });
 

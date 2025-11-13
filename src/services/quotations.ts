@@ -23,38 +23,36 @@ export const listQuotationsFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator(listQuotationsInput.optional())
 	.handler(async ({ data, context }) => {
-		const whereConditions: Array<
-			ReturnType<typeof eq> | ReturnType<typeof and> | ReturnType<typeof or>
-		> = [eq(quotations.contractorId, context.session.user.id)];
-
-		// Add filters if provided
-		if (data?.status) {
-			whereConditions.push(eq(quotations.status, data.status));
-		}
-
-		if (data?.clientId) {
-			whereConditions.push(eq(quotations.clientId, data.clientId));
-		}
-
-		if (data?.searchTerm && data.searchTerm.trim() !== "") {
-			const searchCondition = or(
-				ilike(quotations.quotationNumber, `%${data.searchTerm}%`),
-				ilike(quotations.internalNotes, `%${data.searchTerm}%`),
-			);
-			if (searchCondition) {
-				whereConditions.push(searchCondition);
-			}
-		}
-
-		const allQuotations = await db
+		let query = db
 			.select({
 				quotation: quotations,
 				client: clients,
 			})
 			.from(quotations)
 			.leftJoin(clients, eq(quotations.clientId, clients.id))
-			.where(and(...whereConditions))
-			.orderBy(desc(quotations.createdAt));
+			.where(eq(quotations.contractorId, context.session.user.id))
+			.orderBy(desc(quotations.createdAt))
+			.$dynamic();
+
+		// Add filters if provided
+		if (data?.status) {
+			query = query.where(eq(quotations.status, data.status));
+		}
+
+		if (data?.clientId) {
+			query = query.where(eq(quotations.clientId, data.clientId));
+		}
+
+		if (data?.searchTerm && data.searchTerm.trim() !== "") {
+			query = query.where(
+				or(
+					ilike(quotations.quotationNumber, `%${data.searchTerm}%`),
+					ilike(quotations.internalNotes, `%${data.searchTerm}%`),
+				),
+			);
+		}
+
+		const allQuotations = await query.execute();
 
 		return allQuotations.map((row) => ({
 			...row.quotation,

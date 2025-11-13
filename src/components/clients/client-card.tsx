@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { Building2, Mail, MapPin, Phone } from "lucide-react";
+import { memo } from "react";
 import type { Client } from "@/db/schema";
 
 interface ClientCardProps {
 	client: Client;
 }
 
-export function ClientCard({ client }: ClientCardProps) {
+export const ClientCard = memo(function ClientCard({ client }: ClientCardProps) {
 	return (
 		<Link
 			to="/clients/$clientId"
@@ -47,4 +48,4 @@ export function ClientCard({ client }: ClientCardProps) {
 			</div>
 		</Link>
 	);
-}
+});

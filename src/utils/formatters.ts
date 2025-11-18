@@ -24,12 +24,6 @@
  * />
  * ```
  */
-import {
-	type CountryCode,
-	formatIncompletePhoneNumber,
-	parsePhoneNumber,
-} from "libphonenumber-js";
-
 export interface InputFormatter {
 	format: (value: string) => string;
 	unformat: (value: string) => string;
@@ -83,49 +77,34 @@ export const phoneFormatter: InputFormatter = {
 };
 
 /**
- * International phone formatter using libphonenumber-js
- * Supports Argentina and other countries
+ * Simple Argentina phone formatter using regex (lightweight alternative)
+ * Formats: 11 1234-5678 or similar patterns
+ * For full international support, use phone-formatters.ts
  */
+export const phoneFormatterAR: InputFormatter = {
+	format: (value: string): string => {
+		// Remove all non-digit characters
+		const cleaned = value.replace(/\D/g, "");
 
-/**
- * Creates a phone formatter for a specific country
- * @param country - ISO 3166-1 alpha-2 country code (e.g., "AR" for Argentina, "US" for USA)
- * @returns InputFormatter for phone numbers
- *
- * @example
- * ```tsx
- * const argentinaPhoneFormatter = createPhoneFormatter("AR");
- * <field.TextField formatter={argentinaPhoneFormatter} />
- * ```
- */
-export function createPhoneFormatter(country: CountryCode): InputFormatter {
-	return {
-		format: (value: string): string => {
-			if (!value) return "";
-			// Format as user types, showing a partial number
-			return formatIncompletePhoneNumber(value, country);
-		},
-		unformat: (value: string): string => {
-			try {
-				// Parse and return in E.164 format (e.g., +541112345678)
-				const phoneNumber = parsePhoneNumber(value, country);
-				if (phoneNumber) {
-					return phoneNumber.number;
-				}
-			} catch {
-				// If parsing fails, just remove formatting characters
-				return value.replace(/[\s()-]/g, "");
-			}
-			return value.replace(/[\s()-]/g, "");
-		},
-	};
-}
+		// Remove leading 54 or +54 if present (country code)
+		const withoutCountry = cleaned.replace(/^(54)?/, "");
 
-/**
- * Argentina phone formatter
- * Formats: +54 9 11 1234-5678 (mobile) or +54 11 1234-5678 (landline)
- */
-export const phoneFormatterAR = createPhoneFormatter("AR");
+		// Remove area code 9 if present (mobile indicator)
+		const withoutNine = withoutCountry.replace(/^9/, "");
+
+		// Format based on length
+		// Expected: 11 1234 5678 (Buenos Aires mobile)
+		// or: 11 1234-5678
+		if (withoutNine.length === 0) return "";
+		if (withoutNine.length <= 2) return withoutNine; // Area code
+		if (withoutNine.length <= 6)
+			return `${withoutNine.slice(0, 2)} ${withoutNine.slice(2)}`; // 11 1234
+		return `${withoutNine.slice(0, 2)} ${withoutNine.slice(2, 6)}-${withoutNine.slice(6, 10)}`; // 11 1234-5678
+	},
+	unformat: (value: string): string => {
+		return value.replace(/\D/g, "");
+	},
+};
 
 /**
  * Percentage formatter - adds % symbol

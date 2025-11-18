@@ -94,7 +94,11 @@ Located in `src/db/schema.ts`, implements Better Auth tables:
 - `account` - OAuth accounts and password storage
 - `verification` - Email verification tokens
 
-Database client in `src/db/index.ts` uses `DATABASE_URL` environment variable.
+Database client in `src/db/index.ts` uses connection pooling with `node-postgres` Pool:
+- Configured with `DATABASE_URL` environment variable
+- Pool settings: max 10 connections, min 2 connections
+- 30s idle timeout, 5s connection timeout
+- Prevents connection exhaustion under load
 
 ### TanStack Query Integration
 
@@ -138,6 +142,10 @@ TypeScript path alias `@/*` maps to `./src/*` (configured in `tsconfig.json` and
 - `@tanstack/react-start/plugin/vite` - TanStack Start SSR/SSG
 - `@tanstack/nitro-v2-vite-plugin` - Nitro server deployment
 - `@vitejs/plugin-react` - React Fast Refresh
+
+## Deployment
+
+The application and PostgreSQL database are deployed on a Hetzner VPS using Coolify for container orchestration and management.
 
 ## Environment Variables
 

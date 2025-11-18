@@ -17,7 +17,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@netlify/vite-plugin-tanstack-start": "^1.0.2",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/devtools-vite": "^0.3.11",
     "@tanstack/nitro-v2-vite-plugin": "^1.133.19",

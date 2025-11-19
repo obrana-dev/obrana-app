@@ -1,6 +1,4 @@
-import { defineNitroConfig } from "nitropack/config";
-
-export default defineNitroConfig({
+export default {
 	// Set cache headers for static assets
 	routeRules: {
 		// Cache hashed assets for 1 year (they have content hashes in filenames)
@@ -17,4 +15,4 @@ export default defineNitroConfig({
 		},
 	},
 	compatibilityDate: "2025-11-18",
-});
+};

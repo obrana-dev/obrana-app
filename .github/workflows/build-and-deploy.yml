@@ -82,6 +82,5 @@ jobs:
         run: |
           echo "Docker image built and pushed successfully!"
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-
-          # Trigger Coolify webhook to pull new image (uncomment when ready)
-          # curl -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}"
+          Trigger Coolify webhook to pull new image
+          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}"

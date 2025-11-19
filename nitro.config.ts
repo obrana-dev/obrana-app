@@ -1,4 +1,4 @@
-export default {
+export default defineNitroConfig({
 	// Set cache headers for static assets
 	routeRules: {
 		// Cache hashed assets for 1 year (they have content hashes in filenames)
@@ -15,4 +15,4 @@ export default {
 		},
 	},
 	compatibilityDate: "2025-11-18",
-};
+});

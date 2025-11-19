@@ -10,7 +10,9 @@ interface QuotationCardProps {
 	};
 }
 
-export const QuotationCard = memo(function QuotationCard({ quotation }: QuotationCardProps) {
+export const QuotationCard = memo(function QuotationCard({
+	quotation,
+}: QuotationCardProps) {
 	const statusInfo = getQuotationStatusInfo(quotation.status);
 
 	return (

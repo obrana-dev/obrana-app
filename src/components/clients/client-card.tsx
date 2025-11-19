@@ -7,7 +7,9 @@ interface ClientCardProps {
 	client: Client;
 }
 
-export const ClientCard = memo(function ClientCard({ client }: ClientCardProps) {
+export const ClientCard = memo(function ClientCard({
+	client,
+}: ClientCardProps) {
 	return (
 		<Link
 			to="/clients/$clientId"

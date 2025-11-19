@@ -55,7 +55,7 @@ export const EMPLOYMENT_TYPE_OPTIONS = [
 	{ label: "Por Hora", value: "HOURLY" },
 	{ label: "Por Día (Jornal)", value: "DAILY" },
 	{ label: "Subcontratista", value: "SUB_CONTRACTOR" },
-]
+];
 
 /**
  * Pay frequency options for select fields
@@ -64,4 +64,4 @@ export const PAY_FREQUENCY_OPTIONS = [
 	{ label: "Semanal", value: "WEEKLY" },
 	{ label: "Quincenal", value: "BI_WEEKLY" },
 	{ label: "Mensual", value: "MONTHLY" },
-]
+];

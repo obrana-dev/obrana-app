@@ -77,7 +77,5 @@ jobs:
       - name: Trigger Coolify Deployment
         if: success()
         run: |
-          echo "Docker image built and pushed successfully!"
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          Trigger Coolify webhook to pull new image
-          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}"
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK }}' \
+               --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'

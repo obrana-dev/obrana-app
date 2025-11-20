@@ -26,6 +26,12 @@ const config = defineConfig({
 				},
 			},
 		},
+		externals: {
+			external: ["pg"],
+		},
+	},
+	ssr: {
+		external: ["pg"],
 	},
 });
 
